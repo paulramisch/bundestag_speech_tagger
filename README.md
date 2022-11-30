@@ -31,15 +31,21 @@ the classification won't take place which would lead to a non-detected speech.
 However, during the annotation process, there was not a single case of this found.
 
 # LSTM architecture
-loc("mps_matmul"("(mpsFileLoc): /AppleInternal/Library/BuildRoots/a0876c02-1788-11ed-b9c4-96898e02b808/Library/Caches/com.apple.xbs/Sources/MetalPerformanceShadersGraph/mpsgraph/MetalPerformanceShadersGraph/Core/Files/MPSGraphUtilities.mm":28:0)): error: inner dimensions differ 14 & 128
+ - Epoch 2
+training loss: 0.0
+validation loss: 0.0
+validation perplexity: 1.0
+accuracy: 0.6717998075072185
+15.177 seconds for this epoch
 
-loc("mps_matmul"("(mpsFileLoc): /AppleInternal/Library/BuildRoots/a0876c02-1788-11ed-b9c4-96898e02b808/Library/Caches/com.apple.xbs/Sources/MetalPerformanceShadersGraph/mpsgraph/MetalPerformanceShadersGraph/Core/Files/MPSGraphUtilities.mm":28:0)): error: invalid shape
+ - Epoch 3
+training loss: 0.0
+validation loss: 0.0
+validation perplexity: 1.0
+accuracy: 0.6717998075072185
+15.28 seconds for this epoch
 
-Issue: probably can't handle smaller batch size
- error: inner dimensions differ 14 & 128
-LLVM ERROR: Failed to infer result type(s).
-torch.Size([64, 128])
-torch.Size([45, 128])
+Das System lernt gerade nicht
 
 # Transformer
 

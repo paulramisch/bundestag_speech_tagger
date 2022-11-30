@@ -53,7 +53,6 @@ class SpeechLabeler(torch.nn.Module):
 
         # Send through
         batch_label_space = self.linear(hidden_concatenated)
-        print(hidden_concatenated.shape)
 
         # Send through activation
         # prediction = torch.nn.Sigmoid(batch_label_space)
@@ -72,11 +71,12 @@ class SpeechLabeler(torch.nn.Module):
         loss = F.nll_loss(prediction, vector_tags)
 
         with torch.no_grad():
+            true_positive_prediction = 0
+            true_negative_prediction = 0
+            false_positive_prediction = 0
+            false_false_prediction = 0
+
             for sentence_index, sentence in enumerate(prediction):  # Batch
-                true_positive_prediction = 0
-                true_negative_prediction = 0
-                false_positive_prediction = 0
-                false_false_prediction = 0
 
                 # 0: False, 1: True
                 # Classification is Positive
@@ -109,17 +109,22 @@ class SpeechLabeler(torch.nn.Module):
 
             # Todo: Decide, either batch test or all at once
             # go through all test data points
-            for instance in test_data:
-                # send the data point through the model and get a prediction
-                lstm_out, hidden = self.forward([instance[0]])
+            all_senteces = []
+            all_tags = []
+            for sentence in test_data:
+                all_senteces.append(sentence[0])
+                all_tags.append(sentence[1])
 
-                # Calculate loss
-                loss, accuracy_data = self.compute_loss(lstm_out, [instance[1]])
-                aggregate_loss_sum += loss.item()
+            # send the data point through the model and get a prediction
+            lstm_out, hidden = self.forward(all_senteces)
 
-                # Add to accuracy variables
-                true_predictions += accuracy_data[0] + accuracy_data[1]
-                false_predictions += accuracy_data[2] + accuracy_data[3]
+            # Calculate loss
+            loss, accuracy_data = self.compute_loss(hidden, all_tags)
+            aggregate_loss_sum += loss.item()
+
+            # Add to accuracy variables
+            true_predictions += accuracy_data[0] + accuracy_data[1]
+            false_predictions += accuracy_data[2] + accuracy_data[3]
 
         accuracy = true_predictions / (true_predictions + false_predictions)
         aggregate_loss = aggregate_loss_sum / len(test_data)
