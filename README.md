@@ -23,13 +23,23 @@ From these annotated text files the lines that precede the speeches get extracte
 An possible alternative would obviously to use the whole text body and train it to insert tags where a new speech starts.
 While this is a viable approach, the classification of single lines is more promising as we only need line(s) that end with a colon.
 Some of those are the "meta information lines", some just speech content.
+Further, the architectures we use here (LSTM & Transformers) in this case would need a sentence level encoding, instead of word level encoding. This would lead to big loss of informartion towards certain characters that help this classificiation.
 
-So naturally the "negative examples" is just speech content that includes a colon.
+Naturally the negatives are just speech content that includes a colon.
 This also leads to a blind spot of this approach: If the colon is missing, either due to OCR or another mistake, 
 the classification won't take place which would lead to a non-detected speech.
 However, during the annotation process, there was not a single case of this found.
 
-# RNN architecture
+# LSTM architecture
+loc("mps_matmul"("(mpsFileLoc): /AppleInternal/Library/BuildRoots/a0876c02-1788-11ed-b9c4-96898e02b808/Library/Caches/com.apple.xbs/Sources/MetalPerformanceShadersGraph/mpsgraph/MetalPerformanceShadersGraph/Core/Files/MPSGraphUtilities.mm":28:0)): error: inner dimensions differ 14 & 128
+
+loc("mps_matmul"("(mpsFileLoc): /AppleInternal/Library/BuildRoots/a0876c02-1788-11ed-b9c4-96898e02b808/Library/Caches/com.apple.xbs/Sources/MetalPerformanceShadersGraph/mpsgraph/MetalPerformanceShadersGraph/Core/Files/MPSGraphUtilities.mm":28:0)): error: invalid shape
+
+Issue: probably can't handle smaller batch size
+ error: inner dimensions differ 14 & 128
+LLVM ERROR: Failed to infer result type(s).
+torch.Size([64, 128])
+torch.Size([45, 128])
 
 # Transformer
 

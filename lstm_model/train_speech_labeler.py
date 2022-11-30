@@ -4,17 +4,29 @@ import torch
 import random
 import torch.optim as optim
 import numpy
+import more_itertools
 import os # To count files within a folder
 import pickle
+import re
 
-from helper_functions import plot_loss_curves, make_label_dictionary, make_sbert_encoding
+from helper_functions import plot_loss_curves, make_dictionary
 from speech_labeler import SpeechLabeler
 
 
-torch.manual_seed(1)
-
 # Variables
 data = Path("../data/data.pkl")
+
+# model_save_name = "experiments/best-grammar-corrector.pt"
+model_save_name = "models/best-speech-tagger.pt"
+
+# All hyperparameters
+learning_rate = 0.05
+number_of_epochs = 5
+embedding_size = 50
+rnn_hidden_size = 64
+mini_batch_size = 64
+torch.manual_seed(1)
+unk_threshold = 1
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -23,14 +35,6 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     
-# All hyperparameters
-learning_rate = 0.05
-number_of_epochs = 30
-rnn_hidden_size = 500
-mini_batch_size = 4
-
-# model_save_name = "experiments/best-grammar-corrector.pt"
-model_save_name = "models/best-speech-tagger.pt"
 
 print(f"Training speech labeler with \n - rnn_hidden_size: {rnn_hidden_size}\n - learning rate: {learning_rate}"
       f" \n - max_epochs: {number_of_epochs} \n - mini_batch_size: {number_of_epochs} ")
@@ -41,27 +45,38 @@ training_data = []
 with open(data, 'rb') as pickle_file:
     file = pickle.load(pickle_file)
 
+
 for observation in file:
-    try:
-        string = observation[0]
-        is_speech = observation[1]
+    string = observation[0]
+    classification = observation[1]
 
-        # Encoding step
+    # Encoding step
+    # The Regex finds all Words (including German Umlaut and ß) and all Punctation and Brackets
+    string_split = re.findall(r"[\u00C0-\u017Fa-zA-Z']+|[\(\)\[\]\*.,!?;€]", string)
 
-        # Encoded
-        encoding = training_data.append([string, string], dtype=numpy.float32)
+    # Encoded
+    training_data.append((string_split, classification))
 
-    except:
-        print("An exception occurred in")
-
-training_data.append((file_encoded_texts, file_tags))
-
-
+# Todo: Mix training data
 # create training, testing and validation splits
 corpus_size = len(training_data)
 validation_data = training_data[-round(corpus_size / 5):-round(corpus_size / 10)]
 test_data = training_data[-round(corpus_size / 10):]
-training_data = training_data[:-round(corpus_size / 5)]
+# training_data = training_data[:-round(corpus_size / 5)]
+training_data = training_data[:-round(corpus_size / 5) * 4]
+
+
+# some helpful output
+print(f"\nTraining corpus has "
+      f"{len(training_data)} train, "
+      f"{len(validation_data)} validation and "
+      f"{len(test_data)} test sentences")
+
+# -- STEP 2: MAKE DICTIONARIES
+all_sentences = [pair[0] for pair in training_data]
+all_tags = [pair[1] for pair in training_data]
+
+word_vocabulary = make_dictionary(all_sentences, unk_threshold)
 
 # some helpful output
 print(f"\nTraining corpus has "
@@ -69,15 +84,14 @@ print(f"\nTraining corpus has "
       f"{len(validation_data)} validation and "
       f"{len(test_data)} test files")
 
-# -- STEP 2: MAKE TAG DICTIONARY
-all_tags = [pair[1] for pair in training_data]
-tag_vocabulary = make_label_dictionary(all_tags)
 
 # -- Step 3: initialize model and send to device
-model = SpeechLabeler(  tag_vocabulary = tag_vocabulary,
-                        rnn_hidden_size = rnn_hidden_size,
-                        device = device
-                        )
+model = SpeechLabeler(
+    word_vocabulary=word_vocabulary,
+    rnn_hidden_size=rnn_hidden_size,
+    embedding_size=embedding_size,
+    device=device
+    )
 
 model.to(device)
 print(model)
@@ -120,7 +134,7 @@ for epoch in range(number_of_epochs):
         batch_tags = [pair[1] for pair in batch]
 
         lstm_out, hidden = model.forward(batch_sentences)
-        loss, _ = model.compute_loss(lstm_out, batch_tags)
+        loss, _ = model.compute_loss(hidden, batch_tags)
 
         # remember loss and backpropagate
         train_loss += loss.item()
@@ -130,8 +144,7 @@ for epoch in range(number_of_epochs):
     train_loss /= len(batch)
 
     # Evaluate and print accuracy at end of each epoch
-    accuracy, tag_list_accuracy, validation_perplexity, validation_loss \
-        = model.evaluate(test_data)
+    accuracy, accuracy_data, validation_perplexity, validation_loss = model.evaluate(test_data)
 
     # remember best model:
     if accuracy > best_accuracy:
@@ -148,13 +161,6 @@ for epoch in range(number_of_epochs):
     print(f"validation perplexity: {validation_perplexity}")
     print(f"accuracy: {accuracy}")
 
-    for item_index, item in enumerate(tag_list_accuracy[0]):
-        print(list(tag_vocabulary.keys())[list(tag_vocabulary.values()).index(item_index)],
-              "- true:", tag_list_accuracy[0][item_index],
-              " false:", tag_list_accuracy[1][item_index],
-              " acurracy:", tag_list_accuracy[0][item_index] / (tag_list_accuracy[0][item_index] + tag_list_accuracy[1][item_index]))
-
-
     # append to lists for later plots
     train_loss_per_epoch.append(train_loss)
     validation_loss_per_epoch.append(validation_loss)
@@ -167,19 +173,13 @@ for epoch in range(number_of_epochs):
 # do final test:
 # load best model and do final test
 best_model = torch.load(model_save_name)
-test_accuracy, tag_list_accuracy, _, _ = best_model.evaluate(validation_data)
+test_accuracy, accuracy_data, _, _ = best_model.evaluate(validation_data)
 
 # print final score
 print("\n -- Training Done --")
 print(f" - using model from epoch {best_epoch} for final evaluation")
 print(f" - final score: {test_accuracy}")
 
-for item_index, item in enumerate(tag_list_accuracy[0]):
-    print(list(tag_vocabulary.keys())[list(tag_vocabulary.values()).index(item_index)],
-          "- true:", tag_list_accuracy[0][item_index],
-          " false:", tag_list_accuracy[1][item_index],
-          " acurracy:",
-          tag_list_accuracy[0][item_index] / (tag_list_accuracy[0][item_index] + tag_list_accuracy[1][item_index]))
 
 # make plots
 plot_loss_curves(train_loss_per_epoch,

@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import matplotlib.pyplot as plt
 from textwrap import wrap
-from sentence_transformers import SentenceTransformer
 
 def read_data_from_file(path):
     data = []
@@ -20,11 +19,10 @@ def read_data_from_file(path):
     return data
 
 
-sentence_embedding = SentenceTransformer('distiluse-base-multilingual-cased-v1')
+def create_encoding(word):
+    encoding = ""
 
-
-def make_sbert_encoding(sentences):
-    return sentence_embedding.encode(sentences)
+    return encoding
 
 
 def make_batch_vector(batch_files):
@@ -48,12 +46,11 @@ def make_dictionary(data, unk_threshold: int = 0) -> Dict[str, int]:
 
     # First count the frequency of each distinct ngram
     word_frequencies = {}
-    for file in data:
-        for sentence in file:
-            for word in sentence:
-                if word not in word_frequencies:
-                    word_frequencies[word] = 0
-                word_frequencies[word] += 1
+    for sentence in data:
+        for word in sentence:
+            if word not in word_frequencies:
+                word_frequencies[word] = 0
+            word_frequencies[word] += 1
 
     # Assign indices to each distinct ngram
     word_to_ix = {'<PAD>': 0, '<UNK>': 1}
@@ -66,22 +63,6 @@ def make_dictionary(data, unk_threshold: int = 0) -> Dict[str, int]:
     return word_to_ix
 
 
-def make_label_dictionary(data) -> Dict[str, int]:
-    '''
-    Make a dictionary of labels.
-    :param data: List of (sentence, label) tuples
-    :return: A dictionary of string keys and index values
-    '''
-    label_to_ix = {'<PAD>': 0}
-    for file in data:
-        for word in file:
-            for label in word:
-                if label not in label_to_ix:
-                    label_to_ix[label] = len(label_to_ix)
-
-    return label_to_ix
-
-
 def make_bow_vector(sentence, word_to_ix):
     vec = torch.zeros(len(word_to_ix))
     for word in sentence:
@@ -90,54 +71,39 @@ def make_bow_vector(sentence, word_to_ix):
     return vec.view(1, -1)
 
 
-def make_label_vectors(batch, word_to_ix):
+def make_label_vectors(batch):
     label_mini_batch = []
-    longest_sequence_in_batch = max([len(file) for file in batch])
 
-    for file in batch:
-        onehot_for_file = []
-        for words in file:
-            onehot_for_word = [0] * len(word_to_ix)
-            for word in words:
-                onehot_for_word[word_to_ix[word]] = 1
-            onehot_for_file.append(onehot_for_word)
-
-        onehot_for_file = onehot_for_file + [[0] * len(word_to_ix)] * (longest_sequence_in_batch - len(file))
-        label_mini_batch.append(onehot_for_file)
+    for sentence in batch:
+        # 0: False, 1: True
+        onehot_for_sentence = 1 if sentence else 0
+        label_mini_batch.append(onehot_for_sentence)
 
     return torch.tensor(label_mini_batch)
 
 
-def make_onehot_vectors(files, word_to_ix, multi: bool = False):
+def make_onehot_vectors(sentences, word_to_ix):
     onehot_mini_batch = []
-    longest_sequence_in_batch = max([len(file) for file in files])
 
-    for file in files:
-        onehot_for_file = []
-        if not multi:
-            # move a window over the text
-            for word in file:
+    longest_sequence_in_batch = max([len(sentence) for sentence in sentences])
 
-                # look up ngram index in dictionary
-                if word in word_to_ix:
-                    onehot_for_file.append(word_to_ix[word])
-                else:
-                    onehot_for_file.append(word_to_ix["UNK"] if "UNK" in word_to_ix else 0)
+    for sentence in sentences:
 
-            onehot_for_file = onehot_for_file + [0] * (longest_sequence_in_batch - len(file))
-            onehot_mini_batch.append(onehot_for_file)
+        onehot_for_sentence = []
 
-        # Create multi-hot encoded tensor for tag representation
-        # https://discuss.pytorch.org/t/what-kind-of-loss-is-better-to-use-in-multilabel-classification/32203
-        else:
-            for words in file:
-                onehot_for_word = [0] * len(word_to_ix)
-                for word in words:
-                    onehot_for_word[word_to_ix[word]] = 1
-                onehot_for_file.append(onehot_for_word)
+        # move a window over the text
+        for word in sentence:
 
-            onehot_for_file = onehot_for_file + [[0] * len(word_to_ix)] * (longest_sequence_in_batch - len(file))
-            onehot_mini_batch.append(onehot_for_file)
+            # look up ngram index in dictionary
+            if word in word_to_ix:
+                onehot_for_sentence.append(word_to_ix[word])
+            else:
+                onehot_for_sentence.append(word_to_ix["UNK"] if "UNK" in word_to_ix else 0)
+
+        for i in range(longest_sequence_in_batch - len(sentence)):
+            onehot_for_sentence.append(0)
+
+        onehot_mini_batch.append(onehot_for_sentence)
 
     return torch.tensor(onehot_mini_batch)
 

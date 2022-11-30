@@ -5,133 +5,109 @@ from typing import Dict
 import math
 import torch
 import torch.nn.functional as F
-from helper_functions import make_batch_vector, make_label_vectors
+from helper_functions import make_onehot_vectors, make_label_vectors
 
 
 class SpeechLabeler(torch.nn.Module):
     def __init__(self,
-                 tag_vocabulary: Dict[str, int],
+                 word_vocabulary: Dict[str, int],
                  rnn_hidden_size: int,
+                 embedding_size: int,
                  device: str = 'cpu'):
         
         super(SpeechLabeler, self).__init__()
         
         # remember device, vocabulary
         self.device = device
-        self.tag_vocabulary = tag_vocabulary
+        self.word_vocabulary = word_vocabulary
 
         # Initialize encoder with an embedding layer and an LSTM
-        self.lstm = torch.nn.LSTM(516, # output of SentenceTransformer
+        self.word_embedding = torch.nn.Embedding(len(word_vocabulary), embedding_size)
+        self.lstm = torch.nn.LSTM(embedding_size,
                                   rnn_hidden_size,
                                   batch_first=True,
                                   num_layers=1,
                                   bidirectional=True
                                   )
         
-        # Hidden2tag linear layer takes the  LSTM output and projects to tag space
-        self.hidden2tag = torch.nn.Linear(2*rnn_hidden_size, len(tag_vocabulary))
+        # Hidden2tag linear layer takes the LSTM output and projects to tag space
+        self.linear = torch.nn.Linear(rnn_hidden_size * 2, 1)
 
-    def forward(self, batch_files, hidden=None):
-
+    def forward(self, batch_sentences, hidden=None):
         # Create Vector
-        batch_vector = make_batch_vector(batch_files).to(self.device)
+        vector_sentences = make_onehot_vectors(batch_sentences, self.word_vocabulary).to(self.device)
+
+        # Make embeddings
+        embedded_sentences = self.word_embedding(vector_sentences)
 
         # Send through LSTM (Initial hidden is defaulted to 0)
-        lstm_out, hidden = self.lstm(batch_vector, hidden)
+        lstm_out, hidden = self.lstm(embedded_sentences, hidden)
 
         return lstm_out, hidden
-                 
-    def tag_files(self, file: list):
-        # sentence = sentence.strip().split(" ")
 
-        file_pre_processed = []
+    def make_prediction(self, hidden):
+        # Concatenate the hidden state
+        hidden = hidden[0]
+        batch_size = hidden.size(1)
+        hidden_concatenated = hidden.transpose(1, 0).contiguous().view(batch_size, -1)
 
-        for line in file:
-            # default is loading the corpus as sequence of words
-            file_pre_processed.append(line.strip().split(""))
+        # Send through
+        batch_label_space = self.linear(hidden_concatenated)
+        print(hidden_concatenated.shape)
 
-        lstm_out, hidden  = self.forward([file_pre_processed])
-        prediction = self.make_prediction(lstm_out)
-
-        for index, predicted_tag in enumerate(prediction[0]):
-            # Todo: Iterate through every line of file, chop off its tags from the prediction and combine it with the XML tags
-            file_tagged = file
-
-        return file_tagged
-
-        '''
-        # Todo: Build tagging mechanism
-        for index, predicted_tag in enumerate(prediction[0]):
-            if torch.argmax(predicted_tag).item() == 1:
-                coordinate_insert = [index][0] + 1 + error_count
-                error_count += 1
-                sentence.insert(coordinate_insert, "<ERR>")
-
-                
-        separator = ' '
-        sentence = separator.join(sentence)
-        return sentence
-        '''
-        # Durch die Wörterliste iterieren
-    
-    def compute_loss(self, lstm_out, batch_tags):
-        prediction = self.make_prediction(lstm_out)
-        vector_tags = make_label_vectors(batch_tags, self.tag_vocabulary).to(self.device)
-
-        # compute the loss
-        criterion = torch.nn.MultiLabelSoftMarginLoss()
-        loss = criterion(prediction, vector_tags.float())
-
-        # compute tp, fp
-        tp: int = 0
-        fp: int = 0
-        tp_list = [0] * len(self.tag_vocabulary)
-        fp_list = [0] * len(self.tag_vocabulary)
-
-        for batch_index, batch_item in enumerate(prediction): # Batch
-            for vector_index, predicted_tag_vector in enumerate(batch_item): # Line: Predicted Tag Vector
-                tp_line: int = 0
-                fp_line: int = 0
-
-                for tag_index, predicted_tag in enumerate(predicted_tag_vector): # Predicted Tag
-                    # print(torch.argmax(predicted_tag).item(), " - ", s[batch_index][index].item())
-                    # Todo: Totaler Quatsch ist das natürlich.
-                    # Das gibt nur die Wahrscheinlichkeit zurück, dass dieses Tag exisitiert
-                    # Ersteres gibt ja immer immer 0 zurück, oder?
-                    if torch.round(predicted_tag).item() == vector_tags[batch_index][vector_index][tag_index].item():
-                        tp_line += 1
-                        tp_list[tag_index] += 1
-                    else:
-                        fp_line += 1
-                        fp_list[tag_index] += 1
-
-                if fp_line < 1:
-                    tp += 1
-                else:
-                    fp += 1
-
-        accuracy_data = [tp, fp, tp_list, fp_list]
-
-        return loss, accuracy_data
-    
-    def make_prediction(self, lstm_out):
-        batch_tag_space = self.hidden2tag(lstm_out)
-        prediction = torch.sigmoid(batch_tag_space)
+        # Send through activation
+        # prediction = torch.nn.Sigmoid(batch_label_space)
+        prediction = F.log_softmax(batch_label_space, dim=1)
 
         return prediction
+    
+    def compute_loss(self, hidden, batch_tags):
+        # Make prediction
+        prediction = self.make_prediction(hidden)
+
+        # Make Classification Vector
+        vector_tags = make_label_vectors(batch_tags).to(self.device)
+
+        # compute the loss
+        loss = F.nll_loss(prediction, vector_tags)
+
+        with torch.no_grad():
+            for sentence_index, sentence in enumerate(prediction):  # Batch
+                true_positive_prediction = 0
+                true_negative_prediction = 0
+                false_positive_prediction = 0
+                false_false_prediction = 0
+
+                # 0: False, 1: True
+                # Classification is Positive
+                if vector_tags[sentence_index].item() == 1:
+                    if torch.round(sentence).item() == 1:
+                        true_positive_prediction += 1
+                    else:
+                        false_false_prediction += 1
+                # Classification is Negative
+                else:
+                    if torch.round(sentence).item() == 0:
+                        true_negative_prediction += 1
+                    else:
+                        false_positive_prediction += 1
+
+        # Put together
+        accuracy_data = [true_positive_prediction, true_negative_prediction, false_positive_prediction, false_false_prediction]
+
+        return loss, accuracy_data
 
     def evaluate(self, test_data):
         self.eval()
 
         # evaluate the model
-        tp: int = 0
-        fp: int = 0
+        true_predictions: int = 0
+        false_predictions: int = 0
         aggregate_loss_sum = 0
-        tag_list_accuracy_pos = [0] * len(self.tag_vocabulary)
-        tag_list_accuracy_neg = [0] * len(self.tag_vocabulary)
 
         with torch.no_grad():
 
+            # Todo: Decide, either batch test or all at once
             # go through all test data points
             for instance in test_data:
                 # send the data point through the model and get a prediction
@@ -142,13 +118,11 @@ class SpeechLabeler(torch.nn.Module):
                 aggregate_loss_sum += loss.item()
 
                 # Add to accuracy variables
-                tp += accuracy_data[0]
-                fp += accuracy_data[1]
-                tag_list_accuracy_pos = [x + y for (x,y) in zip(tag_list_accuracy_pos, accuracy_data[2])]
-                tag_list_accuracy_neg = [x + y for (x,y) in zip(tag_list_accuracy_neg, accuracy_data[3])]
+                true_predictions += accuracy_data[0] + accuracy_data[1]
+                false_predictions += accuracy_data[2] + accuracy_data[3]
 
-        accuracy = tp / (tp + fp)
+        accuracy = true_predictions / (true_predictions + false_predictions)
         aggregate_loss = aggregate_loss_sum / len(test_data)
 
         self.train()
-        return accuracy, [tag_list_accuracy_pos, tag_list_accuracy_neg], math.exp(aggregate_loss), aggregate_loss
+        return accuracy, accuracy_data, math.exp(aggregate_loss), aggregate_loss
