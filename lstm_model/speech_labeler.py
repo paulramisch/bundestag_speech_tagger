@@ -32,6 +32,7 @@ class SpeechLabeler(torch.nn.Module):
         
         # Hidden2tag linear layer takes the LSTM output and projects to tag space
         self.linear = torch.nn.Linear(rnn_hidden_size * 2, 1)
+        self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, batch_sentences, hidden=None):
         # Create Vector
@@ -53,10 +54,11 @@ class SpeechLabeler(torch.nn.Module):
 
         # Send through
         batch_label_space = self.linear(hidden_concatenated)
+        batch_label_space = batch_label_space.flatten()
 
         # Send through activation
-        # prediction = torch.nn.Sigmoid(batch_label_space)
-        prediction = F.log_softmax(batch_label_space, dim=1)
+        prediction = self.sigmoid(batch_label_space)
+        # prediction = F.log_softmax(batch_label_space, dim=0)
 
         return prediction
     
@@ -68,7 +70,8 @@ class SpeechLabeler(torch.nn.Module):
         vector_tags = make_label_vectors(batch_tags).to(self.device)
 
         # compute the loss
-        loss = F.nll_loss(prediction, vector_tags)
+        loss_function = torch.nn.BCELoss()
+        loss = loss_function(prediction, vector_tags.to(torch.float32))
 
         with torch.no_grad():
             true_positive_prediction = 0
@@ -81,14 +84,18 @@ class SpeechLabeler(torch.nn.Module):
                 # 0: False, 1: True
                 # Classification is Positive
                 if vector_tags[sentence_index].item() == 1:
+                    # Classification: +, Result: +
                     if torch.round(sentence).item() == 1:
                         true_positive_prediction += 1
+                    # Classification: +, Result: -
                     else:
                         false_false_prediction += 1
                 # Classification is Negative
                 else:
+                    # Classification: -, Result: -
                     if torch.round(sentence).item() == 0:
                         true_negative_prediction += 1
+                    # Classification: -, Result: +
                     else:
                         false_positive_prediction += 1
 

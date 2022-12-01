@@ -3,9 +3,7 @@ from pathlib import Path
 import torch
 import random
 import torch.optim as optim
-import numpy
 import more_itertools
-import os # To count files within a folder
 import pickle
 import re
 
@@ -16,22 +14,22 @@ from speech_labeler import SpeechLabeler
 # Variables
 data = Path("../data/data.pkl")
 
-# model_save_name = "experiments/best-grammar-corrector.pt"
+# model_save_name
 model_save_name = "models/best-speech-tagger.pt"
 
 # All hyperparameters
 learning_rate = 0.05
-number_of_epochs = 5
-embedding_size = 50
-rnn_hidden_size = 64
-mini_batch_size = 64
+number_of_epochs = 7
+embedding_size = 200
+rnn_hidden_size = 50
+mini_batch_size = 10
 torch.manual_seed(1)
 unk_threshold = 1
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
-elif torch.backends.mps.is_available():
-    device = "mps"
+# elif torch.backends.mps.is_available():
+#    device = "mps"
 else:
     device = torch.device("cpu")
     
@@ -57,13 +55,14 @@ for observation in file:
     # Encoded
     training_data.append((string_split, classification))
 
-# Todo: Mix training data
+# Shuffle training data
+random.shuffle(training_data)
+
 # create training, testing and validation splits
 corpus_size = len(training_data)
 validation_data = training_data[-round(corpus_size / 5):-round(corpus_size / 10)]
 test_data = training_data[-round(corpus_size / 10):]
-# training_data = training_data[:-round(corpus_size / 5)]
-training_data = training_data[:-round(corpus_size / 5) * 4]
+training_data = training_data[:-round(corpus_size / 5)]
 
 
 # some helpful output

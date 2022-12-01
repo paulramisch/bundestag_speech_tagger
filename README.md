@@ -31,22 +31,20 @@ the classification won't take place which would lead to a non-detected speech.
 However, during the annotation process, there was not a single case of this found.
 
 # LSTM architecture
- - Epoch 2
-training loss: 0.0
-validation loss: 0.0
-validation perplexity: 1.0
-accuracy: 0.6717998075072185
-15.177 seconds for this epoch
+final score: 0.9990
 
- - Epoch 3
-training loss: 0.0
-validation loss: 0.0
-validation perplexity: 1.0
-accuracy: 0.6717998075072185
-15.28 seconds for this epoch
-
-Das System lernt gerade nicht
-
+| #  | hidden | embedding | unk | lr   | batch | max epochs | used epoch | accuracy                 |
+|----|--------|-----------|-----|------|-------|------------|------------|--------------------------|
+| 1  | 64     | 50        | 1   | 0.05 | 10    | 5          | 3          | 0.9990 0.9981            |
+| 2  | 100    | 50        | 1   | 0.05 | 50    | 5          | 3          | 0.9981                   |
+| 3  | 100    | 50        | 1   | 0.05 | 10    | 5          | 0, 3       | 0.9976 0.9986            |
+| 4  | 100    | 50        | 1   | 0.05 | 10    | 5          | 4          | 0.9981                   |
+| 5  | 64     | 100       | 1   | 0.05 | 10    | 5, 10      | 3, 5       | 0.9990, 0.9981           |
+| 6  | 64     | 200       | 1   | 0.05 | 10    | 7          | 4, 1, 5    | 1.0,  0.9952, 0.9981     |
+| 7  | 64     | 400       | 1   | 0.05 | 10    | 7          | 0          | 0.9971                   |
+| 8  | 64     | 300       | 1   | 0.05 | 10    | 7          | 3          | 0.9986                   |
+| 9  | 64     | 200       | 3   | 0.05 | 10    | 7          | 3, 1, 2    | 0.9961,  0.9966,  0.9990 |
+| 10 | 50     | 200       | 1   | 0.05 | 10    | 7          | 0, 0       | 0.9995, 1.0              |
 # Transformer
 
 # Model comparison

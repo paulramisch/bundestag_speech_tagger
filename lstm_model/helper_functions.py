@@ -118,7 +118,7 @@ def plot_loss_curves(loss_train,
     epochs = range(1, last_finished_epoch + 1)
     hyperparam_pairs = [f"{key}{hyperparams[key]}" for key in hyperparams]
 
-    file_name = f"experiments/loss-curves-{approach_name}-" + "-".join(hyperparam_pairs).replace("/", "-") + ".png"
+    file_name = f"models/loss-curves-{approach_name}-" + "-".join(hyperparam_pairs).replace("/", "-") + ".png"
     title_text = ", ".join([f"{key}:{hyperparams[key]}" for key in hyperparams])
 
     fig, ax1 = plt.subplots()
