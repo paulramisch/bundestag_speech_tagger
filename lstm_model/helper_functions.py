@@ -2,10 +2,11 @@ import math
 from typing import Dict
 
 import torch
-import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import matplotlib.pyplot as plt
 from textwrap import wrap
+import re
+import random
 
 def read_data_from_file(path):
     data = []
@@ -37,12 +38,6 @@ def make_batch_vector(batch_files):
     return batch_vector
 
 def make_dictionary(data, unk_threshold: int = 0) -> Dict[str, int]:
-    '''
-    Makes a dictionary of words given a list of tokenized sentences.
-    :param data: List of (sentence, label) tuples
-    :param unk_threshold: All words below this count threshold are excluded from dictionary and replaced with UNK
-    :return: A dictionary of string keys and index values
-    '''
 
     # First count the frequency of each distinct ngram
     word_frequencies = {}
@@ -53,7 +48,7 @@ def make_dictionary(data, unk_threshold: int = 0) -> Dict[str, int]:
             word_frequencies[word] += 1
 
     # Assign indices to each distinct ngram
-    word_to_ix = {'<PAD>': 0, '<UNK>': 1}
+    word_to_ix = {'<PAD>': 0, '<UNK>': 1, '<MASK>': 2}
     for word, freq in word_frequencies.items():
         if freq > unk_threshold:  # only add words that are above threshold
             word_to_ix[word] = len(word_to_ix)
@@ -82,13 +77,36 @@ def make_label_vectors(batch):
     return torch.tensor(label_mini_batch)
 
 
+def split_sentences(sentences, character_level, mask=False):
+    sentences_split = []
+
+    for sentence in sentences:
+        # Split sentences in list of characters
+        if character_level:
+            sentence_split = []
+            for character in sentence:
+                # Mark 25 % of the characters
+                if mask:
+                    if random.random() < 0.25:
+                        character = "<MASK>"
+
+                sentence_split.append(character)
+
+        # Split sentences in list of words (including German characters as äöüß) and punctuation
+        else:
+            sentence_split = re.findall(r"[\u00C0-\u017Fa-zA-Z']+|[\(\)\[\]\*.,!?;€]", sentence)
+
+        sentences_split.append(sentence_split)
+
+    return sentences_split
+
+
 def make_onehot_vectors(sentences, word_to_ix):
     onehot_mini_batch = []
 
     longest_sequence_in_batch = max([len(sentence) for sentence in sentences])
 
     for sentence in sentences:
-
         onehot_for_sentence = []
 
         # move a window over the text

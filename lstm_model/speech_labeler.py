@@ -5,7 +5,7 @@ from typing import Dict
 import math
 import torch
 import torch.nn.functional as F
-from helper_functions import make_onehot_vectors, make_label_vectors
+from helper_functions import make_onehot_vectors, make_label_vectors,split_sentences
 
 
 class SpeechLabeler(torch.nn.Module):
@@ -13,13 +13,15 @@ class SpeechLabeler(torch.nn.Module):
                  word_vocabulary: Dict[str, int],
                  rnn_hidden_size: int,
                  embedding_size: int,
-                 device: str = 'cpu'):
+                 device: str,
+                 character_level: bool):
         
         super(SpeechLabeler, self).__init__()
         
-        # remember device, vocabulary
+        # remember device, vocabulary and character_level
         self.device = device
         self.word_vocabulary = word_vocabulary
+        self.character_level = character_level
 
         # Initialize encoder with an embedding layer and an LSTM
         self.word_embedding = torch.nn.Embedding(len(word_vocabulary), embedding_size)
@@ -35,8 +37,11 @@ class SpeechLabeler(torch.nn.Module):
         self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, batch_sentences, hidden=None):
+        # Preprocessing
+        batch_split_sentences = split_sentences(batch_sentences, self.character_level, self.training)
+
         # Create Vector
-        vector_sentences = make_onehot_vectors(batch_sentences, self.word_vocabulary).to(self.device)
+        vector_sentences = make_onehot_vectors(batch_split_sentences, self.word_vocabulary).to(self.device)
 
         # Make embeddings
         embedded_sentences = self.word_embedding(vector_sentences)
@@ -58,7 +63,6 @@ class SpeechLabeler(torch.nn.Module):
 
         # Send through activation
         prediction = self.sigmoid(batch_label_space)
-        # prediction = F.log_softmax(batch_label_space, dim=0)
 
         return prediction
     
@@ -134,7 +138,18 @@ class SpeechLabeler(torch.nn.Module):
             false_predictions += accuracy_data[2] + accuracy_data[3]
 
         accuracy = true_predictions / (true_predictions + false_predictions)
+        f1_score = (2 * accuracy_data[0] / (2 * accuracy_data[0] + accuracy_data[2] + accuracy_data[3]))
         aggregate_loss = aggregate_loss_sum / len(test_data)
 
         self.train()
-        return accuracy, accuracy_data, math.exp(aggregate_loss), aggregate_loss
+        return accuracy, f1_score, accuracy_data, math.exp(aggregate_loss), aggregate_loss
+
+    def classify(self, string):
+        # send the data point through the model and get a prediction
+        self.eval()
+        _, hidden = self.forward([string])
+        prediction_torch = self.make_prediction(hidden)
+        prediction_int = torch.round(prediction_torch).item()
+        prediction = False if prediction_int == 0 else True
+
+        return prediction

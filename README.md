@@ -33,6 +33,7 @@ However, during the annotation process, there was not a single case of this foun
 # LSTM architecture
 final score: 0.9990
 
+## Accuracy
 | #  | hidden | embedding | unk | lr   | batch | max epochs | used epoch | accuracy                 |
 |----|--------|-----------|-----|------|-------|------------|------------|--------------------------|
 | 1  | 64     | 50        | 1   | 0.05 | 10    | 5          | 3          | 0.9990 0.9981            |
@@ -45,6 +46,66 @@ final score: 0.9990
 | 8  | 64     | 300       | 1   | 0.05 | 10    | 7          | 3          | 0.9986                   |
 | 9  | 64     | 200       | 3   | 0.05 | 10    | 7          | 3, 1, 2    | 0.9961,  0.9966,  0.9990 |
 | 10 | 50     | 200       | 1   | 0.05 | 10    | 7          | 0, 0       | 0.9995, 1.0              |
+| 11 | 50     | 200       | 1   | 0.04 | 10    | 7          | 2          | 0.9995, 0.9966           |
+| 12 | 50     | 200       | 10  | 0.048| 10    | 7          | 6          | 0.9061                   |
+
+## F1-Score
+| #  | ch_level | hidden | embedding | unk | lr   | batch | max epochs | used epoch | f1_score            |
+|----|----------|--------|-----------|-----|------|-------|------------|------------|---------------------|
+| 12 |          | 50     | 200       | 10  | 0.048| 10    | 7          | 6          | 0.8157              |
+| 13 |          | 50     | 500       | 10  | 0.05 | 10    | 10         | 2          | 0.8674              |
+| 14 | X        | 50     | 500       | 1   | 0.05 | 10    | 10         | 3          | 0.9974              | 
+| 15 | X        | 50     | 50        | 1   | 0.05 | 10    | 10         | 4          | 0.998               |
+| 16 | X        | 50     | 50        | 1   | 0.05 | 10    | 5          | 4          | 0.9901              |
+| 17 | X        | 50     | 20        | 1   | 0.05 | 10    | 5          | 4,3        | 1.0, 0.9954, 0.9987 |
+| 18 | X        | 100    | 20        | 1   | 0.05 | 10    | 5          | 4          | 0.998               |
+| 19 | X        | 20     | 20        | 1   | 0.05 | 10    | 5          | 1          | 0.9968              |
+| 20 | X        | 40     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9993              |
+| 21 | X        | 50     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9966              |
+| 22 | X        | 50     | 25        | 1   | 0.05 | 10    | 5          | 4          | 0.9987              |
+
+
+Scores:
+Model 12: 2092  -  0.1007
+Model 10: 992  -  0.0477
+Model 14: 83  -  0.0040
+Model 15: 16  -  0.0008
+Model 16: 57  -  0.0027
+Model 17: 25  -  0.0012 / 123  -  0.0059
+Model 18: 42  -  0.002
+Model 19: 87  -  0.0042
+Model 20: 28  -  0.0013
+Model 21: 44  -  0.0021
+Model 22: 43  -  0.0021
+
+Major Änderungen:
+Ab 12: Bewertung anhand des F1-Scores, statt Accuracy
+Ab 14: Character Level
+Ab 16: Vier fehlende Redebeiträge annotiert
+Ab 16: Random Masking von 25 % der Redebeiträge
+
+## Isuess
+With words, the system just learns the names of the politicians, the scores are high for those. The moment we increase the threshold for UNK words, the system fails to deliever good results.
+
+By classifing not on the word, but character level the perfomance for these cases can significantly be incrased. Still the system has issues with functions, it does not know. 
+
+We try to act on this by randomly masking the input.
+
 # Transformer
 
 # Model comparison
+Im OP-Korpus sind in der betrachteten Stichprobe rund 233 von 7542 Redebeiträgen nicht erkannt worden, also 3,09 %. Weiterhin wurden 48 Redebeiträge erkannt, die eigentlich keine Redebeiträge sind.
+
+How to compare 
+Understanding Recall, Precision, F1-Score
+https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856
+
+
+https://en.wikipedia.org/wiki/Sensitivity_and_specificity
+Therefore F1-Score (2 * true_positive / (2 *  true_positive + false_positive + false_negative)):
+2 * 7309 / (2* 7309 + 233 + 48) = 0.9811
+
+Versus: 
+2 * 746 / (2 * 746 + 1 + 1) = 0.9987
+
+- ID-Tabelle

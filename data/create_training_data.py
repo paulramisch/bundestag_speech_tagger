@@ -12,6 +12,7 @@ warnings.filterwarnings("ignore")
 # Define paths
 xml_path = "annotated_protocols"
 export = "data.pkl"
+comparison_export = "comparison_data.pkl"
 
 # Create dataframe of possible cases
 dataset_columns = ["protocol_id", "nr", "id", "string", "is_speech"]
@@ -77,7 +78,11 @@ dataset = pd.concat(df_list, ignore_index=True)
 dataset_list = dataset.drop(['protocol_id', 'nr', "id"], axis=1).values.tolist()
 
 # Save
-with open(export, "wb") as fp:   #Pickling
+with open(export, "wb") as fp:
     pickle.dump(dataset_list, fp)
+
+with open(comparison_export, "wb") as fp:
+    pickle.dump(dataset, fp)
+
 
 print(len(dataset))

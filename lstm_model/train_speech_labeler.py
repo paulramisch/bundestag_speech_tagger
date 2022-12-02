@@ -5,7 +5,6 @@ import random
 import torch.optim as optim
 import more_itertools
 import pickle
-import re
 
 from helper_functions import plot_loss_curves, make_dictionary
 from speech_labeler import SpeechLabeler
@@ -19,12 +18,13 @@ model_save_name = "models/best-speech-tagger.pt"
 
 # All hyperparameters
 learning_rate = 0.05
-number_of_epochs = 7
-embedding_size = 200
+number_of_epochs = 5
+embedding_size = 20
 rnn_hidden_size = 50
 mini_batch_size = 10
 torch.manual_seed(1)
 unk_threshold = 1
+character_level = True
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -38,22 +38,15 @@ print(f"Training speech labeler with \n - rnn_hidden_size: {rnn_hidden_size}\n -
       f" \n - max_epochs: {number_of_epochs} \n - mini_batch_size: {number_of_epochs} ")
 
 # -- STEP 1: LOAD TRAINING DATA
-training_data = []
-
 with open(data, 'rb') as pickle_file:
     file = pickle.load(pickle_file)
 
-
+training_data = []
 for observation in file:
     string = observation[0]
     classification = observation[1]
 
-    # Encoding step
-    # The Regex finds all Words (including German Umlaut and ß) and all Punctation and Brackets
-    string_split = re.findall(r"[\u00C0-\u017Fa-zA-Z']+|[\(\)\[\]\*.,!?;€]", string)
-
-    # Encoded
-    training_data.append((string_split, classification))
+    training_data.append((string, classification))
 
 # Shuffle training data
 random.shuffle(training_data)
@@ -89,7 +82,8 @@ model = SpeechLabeler(
     word_vocabulary=word_vocabulary,
     rnn_hidden_size=rnn_hidden_size,
     embedding_size=embedding_size,
-    device=device
+    device=device,
+    character_level=character_level
     )
 
 model.to(device)
@@ -108,7 +102,7 @@ accuracy_per_epoch = []
 # remember the best model
 best_model = None
 best_epoch = 0
-best_accuracy = 0.
+best_f1_score = 0
 
 # Go over the training dataset multiple times
 # Go over the training dataset multiple times
@@ -143,13 +137,13 @@ for epoch in range(number_of_epochs):
     train_loss /= len(batch)
 
     # Evaluate and print accuracy at end of each epoch
-    accuracy, accuracy_data, validation_perplexity, validation_loss = model.evaluate(test_data)
+    accuracy, f1_score, accuracy_data, validation_perplexity, validation_loss = model.evaluate(test_data)
 
     # remember best model:
-    if accuracy > best_accuracy:
+    if f1_score > best_f1_score:
         print("new best model found!")
         best_epoch = epoch
-        best_accuracy = accuracy
+        best_f1_score = accuracy
 
         # always save best model
         torch.save(model, model_save_name)
@@ -158,7 +152,9 @@ for epoch in range(number_of_epochs):
     print(f"training loss: {train_loss}")
     print(f"validation loss: {validation_loss}")
     print(f"validation perplexity: {validation_perplexity}")
-    print(f"accuracy: {accuracy}")
+    print(f"validation accuracy: {accuracy}")
+    print(f"F1 score: {f1_score}")
+    print(f"tp: {accuracy_data[0]} tf: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
 
     # append to lists for later plots
     train_loss_per_epoch.append(train_loss)
@@ -172,12 +168,14 @@ for epoch in range(number_of_epochs):
 # do final test:
 # load best model and do final test
 best_model = torch.load(model_save_name)
-test_accuracy, accuracy_data, _, _ = best_model.evaluate(validation_data)
+test_accuracy, f1_score, accuracy_data, _, _ = best_model.evaluate(validation_data)
 
 # print final score
 print("\n -- Training Done --")
 print(f" - using model from epoch {best_epoch} for final evaluation")
-print(f" - final score: {test_accuracy}")
+print(f"accuracy: {test_accuracy}")
+print(f" - final score: {round(f1_score, 4)}"
+      f"\n tp: {accuracy_data[0]} tf: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
 
 
 # make plots
