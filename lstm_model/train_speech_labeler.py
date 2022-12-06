@@ -97,7 +97,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight
 train_loss_per_epoch = []
 validation_loss_per_epoch = []
 validation_perplexity_per_epoch = []
-accuracy_per_epoch = []
+f1_score_per_epoch = []
 
 # remember the best model
 best_model = None
@@ -143,7 +143,7 @@ for epoch in range(number_of_epochs):
     if f1_score > best_f1_score:
         print("new best model found!")
         best_epoch = epoch
-        best_f1_score = accuracy
+        best_f1_score = f1_score
 
         # always save best model
         torch.save(model, model_save_name)
@@ -160,7 +160,7 @@ for epoch in range(number_of_epochs):
     train_loss_per_epoch.append(train_loss)
     validation_loss_per_epoch.append(validation_loss)
     validation_perplexity_per_epoch.append(validation_perplexity)
-    accuracy_per_epoch.append(accuracy)
+    f1_score_per_epoch.append(f1_score)
 
     end = time.time()
     print(f'{round(end - start, 3)} seconds for this epoch')
@@ -181,8 +181,8 @@ print(f" - final score: {round(f1_score, 4)}"
 # make plots
 plot_loss_curves(train_loss_per_epoch,
                  validation_loss_per_epoch,
-                 accuracy_per_epoch,
+                 f1_score_per_epoch,
                  approach_name="Sequence Labeler Model",
-                 validation_label='Accuracy',
+                 validation_label='F1-Score',
                  hyperparams={"rnn_hidden_size": rnn_hidden_size,
                               "lr": learning_rate})

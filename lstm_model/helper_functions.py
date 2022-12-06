@@ -87,7 +87,7 @@ def split_sentences(sentences, character_level, mask=False):
             for character in sentence:
                 # Mark 25 % of the characters
                 if mask:
-                    if random.random() < 0.25:
+                    if random.random() < 0.40:
                         character = "<MASK>"
 
                 sentence_split.append(character)
@@ -116,7 +116,7 @@ def make_onehot_vectors(sentences, word_to_ix):
             if word in word_to_ix:
                 onehot_for_sentence.append(word_to_ix[word])
             else:
-                onehot_for_sentence.append(word_to_ix["UNK"] if "UNK" in word_to_ix else 0)
+                onehot_for_sentence.append(word_to_ix["<UNK>"] if "<UNK>" in word_to_ix else 0)
 
         for i in range(longest_sequence_in_batch - len(sentence)):
             onehot_for_sentence.append(0)

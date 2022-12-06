@@ -152,4 +152,4 @@ class SpeechLabeler(torch.nn.Module):
         prediction_int = torch.round(prediction_torch).item()
         prediction = False if prediction_int == 0 else True
 
-        return prediction
+        return prediction, torch.round(prediction_torch, decimals=4).item()

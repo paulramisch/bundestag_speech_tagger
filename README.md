@@ -50,19 +50,20 @@ final score: 0.9990
 | 12 | 50     | 200       | 10  | 0.048| 10    | 7          | 6          | 0.9061                   |
 
 ## F1-Score
-| #  | ch_level | hidden | embedding | unk | lr   | batch | max epochs | used epoch | f1_score            |
-|----|----------|--------|-----------|-----|------|-------|------------|------------|---------------------|
-| 12 |          | 50     | 200       | 10  | 0.048| 10    | 7          | 6          | 0.8157              |
-| 13 |          | 50     | 500       | 10  | 0.05 | 10    | 10         | 2          | 0.8674              |
-| 14 | X        | 50     | 500       | 1   | 0.05 | 10    | 10         | 3          | 0.9974              | 
-| 15 | X        | 50     | 50        | 1   | 0.05 | 10    | 10         | 4          | 0.998               |
-| 16 | X        | 50     | 50        | 1   | 0.05 | 10    | 5          | 4          | 0.9901              |
-| 17 | X        | 50     | 20        | 1   | 0.05 | 10    | 5          | 4,3        | 1.0, 0.9954, 0.9987 |
-| 18 | X        | 100    | 20        | 1   | 0.05 | 10    | 5          | 4          | 0.998               |
-| 19 | X        | 20     | 20        | 1   | 0.05 | 10    | 5          | 1          | 0.9968              |
-| 20 | X        | 40     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9993              |
-| 21 | X        | 50     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9966              |
-| 22 | X        | 50     | 25        | 1   | 0.05 | 10    | 5          | 4          | 0.9987              |
+| #   | ch_level | hidden | embedding | unk | lr   | batch | max epochs | used epoch | f1_score            |
+|-----|----------|--------|-----------|-----|------|-------|------------|------------|---------------------|
+| 12  |          | 50     | 200       | 10  | 0.048| 10    | 7          | 6          | 0.8157              |
+| 13  |          | 50     | 500       | 10  | 0.05 | 10    | 10         | 2          | 0.8674              |
+| 14  | X        | 50     | 500       | 1   | 0.05 | 10    | 10         | 3          | 0.9974              | 
+| 15  | X        | 50     | 50        | 1   | 0.05 | 10    | 10         | 4          | 0.998               |
+| 16  | X        | 50     | 50        | 1   | 0.05 | 10    | 5          | 4          | 0.9901              |
+| 17  | X        | 50     | 20        | 1   | 0.05 | 10    | 5          | 4,3,4      | 1.0, 0.9954, 0.9987 |
+| 18  | X        | 100    | 20        | 1   | 0.05 | 10    | 5          | 4          | 0.998               |
+| 19  | X        | 20     | 20        | 1   | 0.05 | 10    | 5          | 1          | 0.9968              |
+| 20  | X        | 40     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9993              |
+| 21  | X        | 50     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9966              |
+| 22  | X        | 50     | 25        | 1   | 0.05 | 10    | 5          | 4          | 0.9987              |
+| 23  | X        | 50     | 20        | 1   | 0.05 | 10    | 5          | 2          | 0.9949              |
 
 
 Scores:
@@ -77,12 +78,14 @@ Model 19: 87  -  0.0042
 Model 20: 28  -  0.0013
 Model 21: 44  -  0.0021
 Model 22: 43  -  0.0021
+Model 23: 25  -  0.0012
 
 Major Änderungen:
-Ab 12: Bewertung anhand des F1-Scores, statt Accuracy
-Ab 14: Character Level
-Ab 16: Vier fehlende Redebeiträge annotiert
-Ab 16: Random Masking von 25 % der Redebeiträge
+* Ab 12: Bewertung anhand des F1-Scores, statt Accuracy
+* Ab 14: Character Level
+* Ab 16: Vier fehlende Redebeiträge annotiert
+* Ab 16: Random Masking von 25 % der Redebeiträge
+* Ab 23: Random Masking von 40 % der Redebeiträge
 
 ## Isuess
 With words, the system just learns the names of the politicians, the scores are high for those. The moment we increase the threshold for UNK words, the system fails to deliever good results.
@@ -92,6 +95,13 @@ By classifing not on the word, but character level the perfomance for these case
 We try to act on this by randomly masking the input.
 
 # Transformer
+
+| #   | encoder_l | d_hid | embedding | attentioh_heads | lr   | batch | max epochs | used epoch | f1_score            |
+|-----|-----------|-------|-----------|-----------------|------|-------|------------|------------|---------------------|
+| 1   | 2         | 200   | 20        | 2               | 0.05 | 10    | 10         | 5          | 0.7806              |
+| 2   | 2         | 200   | 20        | 2               | 0.05 | 1     | 10         | 5          | 0.5233              |
+
+
 
 # Model comparison
 Im OP-Korpus sind in der betrachteten Stichprobe rund 233 von 7542 Redebeiträgen nicht erkannt worden, also 3,09 %. Weiterhin wurden 48 Redebeiträge erkannt, die eigentlich keine Redebeiträge sind.

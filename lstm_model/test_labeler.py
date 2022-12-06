@@ -2,6 +2,7 @@ from pathlib import Path
 from speech_labeler import SpeechLabeler
 import torch
 import pickle
+import pandas as pd
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -29,7 +30,21 @@ with open(Path("../data/comparison_data.pkl"), 'rb') as pickle_file:
     annotated_data = pickle.load(pickle_file)
 
 # Classify training data
-annotated_data["classifier_output"] = annotated_data.apply(lambda row: classifier.classify(row["string"]), axis=1)
+# https://stackoverflow.com/questions/47969756/pandas-apply-function-that-returns-two-new-columns
+# annotated_data["classifier_output"], annotated_data["int"] = annotated_data.apply(lambda row: classifier.classify(row["string"]), axis=1)
+
+
+def run_loopy(df):
+    Cs, Ds = [], []
+    for _, row in df.iterrows():
+        c, d, = classifier.classify(row["string"])
+        Cs.append(c)
+        Ds.append(d)
+    return pd.Series({'classifier_output': Cs, 'int': Ds})
+
+
+annotated_data[['classifier_output', 'int']] = run_loopy(annotated_data)
+
 
 mistakes = annotated_data[annotated_data["classifier_output"] != annotated_data["is_speech"]]
 print(len(mistakes), " - ", round(len(mistakes) / len(annotated_data), 4))
