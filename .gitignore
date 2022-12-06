@@ -1,0 +1,4 @@
+venv/
+bert_model/cache_dir/
+bert_model/outputs/
+bert_model/runs/

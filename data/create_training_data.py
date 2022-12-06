@@ -13,6 +13,7 @@ warnings.filterwarnings("ignore")
 xml_path = "annotated_protocols"
 export = "data.pkl"
 comparison_export = "comparison_data.pkl"
+comparison_export_csv = "comparison_data.csv"
 
 # Create dataframe of possible cases
 dataset_columns = ["protocol_id", "nr", "id", "string", "is_speech"]
@@ -84,5 +85,6 @@ with open(export, "wb") as fp:
 with open(comparison_export, "wb") as fp:
     pickle.dump(dataset, fp)
 
+dataset.to_csv(comparison_export_csv)
 
 print(len(dataset))

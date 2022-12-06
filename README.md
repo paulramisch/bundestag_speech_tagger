@@ -94,14 +94,14 @@ By classifing not on the word, but character level the perfomance for these case
 
 We try to act on this by randomly masking the input.
 
-# Transformer
+# Pretrained Bert model
 
-| #   | encoder_l | d_hid | embedding | attentioh_heads | lr   | batch | max epochs | used epoch | f1_score            |
-|-----|-----------|-------|-----------|-----------------|------|-------|------------|------------|---------------------|
-| 1   | 2         | 200   | 20        | 2               | 0.05 | 10    | 10         | 5          | 0.7806              |
-| 2   | 2         | 200   | 20        | 2               | 0.05 | 1     | 10         | 5          | 0.5233              |
+2 Epoch: 5  -  0.0002
+4 Epoch: 2  -  0.0001
+5 Epoch: 2  -  0.0001
 
-
+14150: "Günther Friedrich Nolting (F.D.P.) (von Abgeordne-\nten der F.D.P. mit Beifall begrüßt):"
+09126: "Häfele, zur Konzeption:"
 
 # Model comparison
 Im OP-Korpus sind in der betrachteten Stichprobe rund 233 von 7542 Redebeiträgen nicht erkannt worden, also 3,09 %. Weiterhin wurden 48 Redebeiträge erkannt, die eigentlich keine Redebeiträge sind.
