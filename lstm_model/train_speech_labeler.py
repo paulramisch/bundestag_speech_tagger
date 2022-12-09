@@ -154,7 +154,7 @@ for epoch in range(number_of_epochs):
     print(f"validation perplexity: {validation_perplexity}")
     print(f"validation accuracy: {accuracy}")
     print(f"F1 score: {f1_score}")
-    print(f"tp: {accuracy_data[0]} tf: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
+    print(f"tp: {accuracy_data[0]} tn: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
 
     # append to lists for later plots
     train_loss_per_epoch.append(train_loss)
@@ -175,7 +175,7 @@ print("\n -- Training Done --")
 print(f" - using model from epoch {best_epoch} for final evaluation")
 print(f"accuracy: {test_accuracy}")
 print(f" - final score: {round(f1_score, 4)}"
-      f"\n tp: {accuracy_data[0]} tf: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
+      f"\n tp: {accuracy_data[0]} tn: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
 
 
 # make plots

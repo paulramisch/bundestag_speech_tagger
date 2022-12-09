@@ -94,6 +94,32 @@ By classifing not on the word, but character level the perfomance for these case
 
 We try to act on this by randomly masking the input.
 
+# LSTM architecture with Fasttext embeddings
+The previous LSTM model learns its embeddings just from the limited number of words represented in the given strings. Another possibility is feeding the LSTM with Word2Vec or Fasttext vectors. In this example we use a (Fasttext model pretrained on German Webcrawl and Wikipedia texts)[https://fasttext.cc/docs/en/crawl-vectors.html]. The embeddings have a size of 300.
+
+The Fasttext model is automaticly downloaded, unpacked it takes up 7.2 gb of disk space.
+
+The results 
+| #   | hidden | lr   | batch | max epochs | used epoch | f1_score              |
+|-----|--------|------|-------|------------|------------|-----------------------|
+| 1   | 50     | 0.05 | 10    | 5          | 3          | 0.9955                |
+| 2   | 100    | 0.05 | 10    | 5          | 4, 2, 1    | 0.9964, 0.987, 0.9974 |
+| 3   | 150    | 0.04 | 10    | 5          | 0          | 0.9953                |
+| 4   | 70     | 0.05 | 10    | 5          | 2, 3       | 0.9928, 0.994         |
+
+Model 3:
+1096  -  0.0528
+Final F1 score: 0.9218
+tp: 6458 tn: 13222 fp: 8 fn: 1088
+
+Bad results because of the padding in the test data
+
+ - using model from epoch 3 for final evaluation
+accuracy: 0.9980741454020221
+ - final score: 0.9974
+ tp: 781 tn: 1292 fp: 4 fn: 0
+
+
 # Pretrained Bert model
 
 2 Epoch: 5  -  0.0002

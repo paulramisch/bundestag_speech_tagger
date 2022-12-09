@@ -2,3 +2,4 @@ venv/
 bert_model/cache_dir/
 bert_model/outputs/
 bert_model/runs/
+lstm_model_fasttext/cc.de.300.bin
