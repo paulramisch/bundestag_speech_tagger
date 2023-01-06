@@ -1,14 +1,12 @@
 # bundestag_speech_tagger
-A machine learning based classification system to find the beginning of speeches in Plenary protocols of the German Bundestag.  
+A machine learning based classification system to find the beginning of speeches in Plenary protocols of the German Bundestag.
 
-The project [Open Discourse](https://opendiscourse.de/) offers a database of all the speeches that were held in the German Parliament, the Bundestag.
-To accomplish this, they used the OCR- and/or PDF-extracted texts of the protocols and cut them into the single speeches by using Regex-based heuristics.
+The project [Open Discourse](https://opendiscourse.de/) offers a database of all the speeches that were held in the German Parliament, the Bundestag. To accomplish this, the research team used OCR- and/or PDF-extracted texts of the protocols and cut them into the single speeches by using Regex-based heuristics.
 These complex heuristics cover the majority of the cases but around 3 % of the original speeches are missing.
 Furthermore, there are speeches in Open Discourse corpora, that are in fact not speeches.
 
 The heuristics are based on a few lines preceding the speech with the name, party and function of the speaker.
-If these "meta information" about are found the system sees this as a start of new speech, and cuts of the preceding speech.
-So a mistake here always also affects the previous speech as well.
+If these "meta information" about are found the system sees this as a start of new speech, and cuts of the preceding speech. So a mistake here always also affects the previous speech as well.
 
 It is important to note that this task is very complex as the structure of these lines and their information changed over 70 years,
 there were also mistakes and OCR issues.
@@ -64,6 +62,9 @@ final score: 0.9990
 | 21  | X        | 50     | 15        | 1   | 0.05 | 10    | 5          | 2          | 0.9966              |
 | 22  | X        | 50     | 25        | 1   | 0.05 | 10    | 5          | 4          | 0.9987              |
 | 23  | X        | 50     | 20        | 1   | 0.05 | 10    | 5          | 2          | 0.9949              |
+| 24  | X        | 50     | 20        | 1   | 0.05 | 10    | 8          | 7, 7       | 0.9990, 0.9993      |
+| 25  | X        | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          | 0.9975              |
+| 26  | X        | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          | 0.9987              |
 
 
 Scores:
@@ -72,20 +73,48 @@ Model 10: 992  -  0.0477
 Model 14: 83  -  0.0040
 Model 15: 16  -  0.0008
 Model 16: 57  -  0.0027
-Model 17: 25  -  0.0012 / 123  -  0.0059 / 36  -  0.0017
-Model 18: 42  -  0.002
+Model 17: 25  -  0.0012 / 123  -  0.0059 / 36  -  0.0017 / 20  -  0.001
+Model 18: 42  -  0.0020
 Model 19: 87  -  0.0042
 Model 20: 28  -  0.0013
 Model 21: 44  -  0.0021
 Model 22: 43  -  0.0021
 Model 23: 25  -  0.0012
+Model 24: 13  -  0.0006
+Model 25: 15  -  0.0007
+Model 26: 15  -  0.0007
+
+
+--
+Model 17
+20  -  0.001
+Final F1 score: 0.9987
+tp: 7534 tn: 13222 fp: 8 fn: 12
+
+Model 24
+Final F1 score: 0.9991
+tp: 7541 tn: 13222 fp: 8 fn: 5
+
+Final F1 score: 0.9985
+tp: 7539 tn: 13215 fp: 15 fn: 7
+
+Model 25
+Final F1 score: 0.9990
+tp: 7537 tn: 13224 fp: 6 fn: 9
+
+Model 26
+Final F1 score: 0.9988
+tp: 7541 tn: 13217 fp: 13 fn: 5
 
 Major Änderungen:
 * Ab 12: Bewertung anhand des F1-Scores, statt Accuracy
 * Ab 14: Character Level
 * Ab 16: Vier fehlende Redebeiträge annotiert
 * Ab 16: Random Masking von 25 % der Redebeiträge
-* Ab 23: Random Masking von 40 % der Redebeiträge
+* nur 23: Random Masking von 40 % der Redebeiträge
+* Ab 24: Dropout 0.2, 2 layer added, 0.3 masking
+* 25: Dropout 0.3, 0.2 masking
+* 26: Dropout 0.1, 0.3 masking
 
 ## Isuess
 With words, the system just learns the names of the politicians, the scores are high for those. The moment we increase the threshold for UNK words, the system fails to deliever good results.
@@ -122,9 +151,17 @@ accuracy: 0.9980741454020221
 
 # Pretrained Bert model
 
+| #   | used epoch | f1_score  |
+|-----|------------|-----------|
+| 1   | 2          | 0.9968    |
+| 2   | 4          | 0.9987    |
+| 3   | 5          | 0.9987    |
+
 2 Epoch: 5  -  0.0002
 4 Epoch: 2  -  0.0001
 5 Epoch: 2  -  0.0001
+
+0.9987
 
 14150: "Günther Friedrich Nolting (F.D.P.) (von Abgeordne-\nten der F.D.P. mit Beifall begrüßt):"
 09126: "Häfele, zur Konzeption:"

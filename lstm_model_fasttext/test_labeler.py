@@ -58,7 +58,6 @@ with open(Path("../data/comparison_data.pkl"), 'rb') as pickle_file:
 
 validation_data = pd.read_csv("validation_data.csv")
 run_test(validation_data)
-
 run_test(annotated_data)
 
 training_data = pd.read_csv("training_data.csv")

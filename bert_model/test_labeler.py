@@ -17,8 +17,8 @@ def set_bool(row):
 # oad models with and without attention
 if __name__ == '__main__':
     # model = ClassificationModel("bert", "outputs/checkpoint-2000", use_cuda=torch.cuda.is_available())
-    # model = ClassificationModel("bert", "outputs/checkpoint-8312-epoch-4", use_cuda=False)
-    model = ClassificationModel("bert", "outputs/checkpoint-10390-epoch-5", use_cuda=False)
+    model = ClassificationModel("bert", "outputs/checkpoint-8312-epoch-4", use_cuda=False)
+    # model = ClassificationModel("bert", "outputs/checkpoint-10390-epoch-5", use_cuda=False)
 
     # Example strings
     # strings = ["Die Leben ist schön", ") Dr. Wahl (CPU)", "Dr. Wahl (CDU)", "Dr. Töpfer, Bundesminister für Umwelt, Naturschutz und Reaktorsicherheit"]

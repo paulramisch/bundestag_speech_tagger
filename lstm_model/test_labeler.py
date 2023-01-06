@@ -33,18 +33,34 @@ with open(Path("../data/comparison_data.pkl"), 'rb') as pickle_file:
 # https://stackoverflow.com/questions/47969756/pandas-apply-function-that-returns-two-new-columns
 # annotated_data["classifier_output"], annotated_data["int"] = annotated_data.apply(lambda row: classifier.classify(row["string"]), axis=1)
 
+def run_test(df):
+    def run_loopy(df):
+        Cs, Ds = [], []
+        for _, row in df.iterrows():
+            c, d, = classifier.classify(row["string"])
+            Cs.append(c)
+            Ds.append(d)
+        return pd.Series({'classifier_output': Cs, 'int': Ds})
 
-def run_loopy(df):
-    Cs, Ds = [], []
-    for _, row in df.iterrows():
-        c, d, = classifier.classify(row["string"])
-        Cs.append(c)
-        Ds.append(d)
-    return pd.Series({'classifier_output': Cs, 'int': Ds})
+    # Get Classification
+    df[['classifier_output', 'int']] = run_loopy(df)
+
+    # Create dataframe of mistakes
+    mistakes = df[df["classifier_output"] != df["is_speech"]]
+
+    # Get mistake count
+    true_positive_prediction = len(df[(df["is_speech"] == True) & (df["classifier_output"] == df["is_speech"])])
+    true_negative_prediction = len(df[(df["is_speech"] == False) & (df["classifier_output"] == df["is_speech"])])
+    false_positive_prediction = len(df[(df["is_speech"] == False) & (df["classifier_output"] != df["is_speech"])])
+    false_false_prediction = len(df[(df["is_speech"] == True) & (df["classifier_output"] != df["is_speech"])])
+
+    # Calculate f1 score
+    f1_score = (2 * true_positive_prediction / (2 * true_positive_prediction + false_positive_prediction + false_false_prediction))
+
+    # Print results
+    print(len(mistakes), " - ", round(len(mistakes) / len(df), 4))
+    print(f"Final F1 score: {round(f1_score, 4)}"
+          f"\ntp: {true_positive_prediction} tn: {true_negative_prediction} fp: {false_positive_prediction} fn: {false_false_prediction}")
 
 
-annotated_data[['classifier_output', 'int']] = run_loopy(annotated_data)
-
-
-mistakes = annotated_data[annotated_data["classifier_output"] != annotated_data["is_speech"]]
-print(len(mistakes), " - ", round(len(mistakes) / len(annotated_data), 4))
+run_test(annotated_data)

@@ -28,12 +28,13 @@ class SpeechLabeler(torch.nn.Module):
         self.lstm = torch.nn.LSTM(embedding_size,
                                   rnn_hidden_size,
                                   batch_first=True,
-                                  num_layers=1,
+                                  dropout=0.2,
+                                  num_layers=2,
                                   bidirectional=True
                                   )
         
         # Hidden2tag linear layer takes the LSTM output and projects to tag space
-        self.linear = torch.nn.Linear(rnn_hidden_size * 2, 1)
+        self.linear = torch.nn.Linear(rnn_hidden_size * 2 * 2, 1)
         self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, batch_sentences, hidden=None):

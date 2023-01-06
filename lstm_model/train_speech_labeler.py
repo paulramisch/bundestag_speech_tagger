@@ -18,7 +18,7 @@ model_save_name = "models/best-speech-tagger.pt"
 
 # All hyperparameters
 learning_rate = 0.05
-number_of_epochs = 5
+number_of_epochs = 10
 embedding_size = 20
 rnn_hidden_size = 50
 mini_batch_size = 10

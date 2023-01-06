@@ -87,7 +87,7 @@ def split_sentences(sentences, character_level, mask=False):
             for character in sentence:
                 # Mark 25 % of the characters
                 if mask:
-                    if random.random() < 0.40:
+                    if random.random() < 0.30:
                         character = "<MASK>"
 
                 sentence_split.append(character)
