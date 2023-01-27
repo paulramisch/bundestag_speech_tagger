@@ -1,7 +1,7 @@
 # bundestag_speech_tagger
 A machine learning based classification system to find the beginning of speeches in Plenary protocols of the German Bundestag.
 
-The project [Open Discourse](https://opendiscourse.de/) offers a database of all the speeches that were held in the German Parliament, the Bundestag. To accomplish this, the research team used OCR- and/or PDF-extracted texts of the protocols and cut them into the single speeches by using Regex-based heuristics.
+The project [Open Discourse](https://opendiscourse.de/) offers a database of all the speeches that were held in the German Parliament, the Bundestag. To accomplish this, the research team used OCR- and/or PDF-extracted texts of the protocols and cut them into the single speeches by using Regex-based heuristics.[[1]](#ref_1)
 These complex heuristics cover the majority of the cases but approximately 3 % of the original speeches are missing.
 Furthermore, there are speeches in Open Discourse corpora, that are in fact not speeches.
 
@@ -29,19 +29,29 @@ the classification won't take place which would lead to a non-detected speech.
 However, during the annotation process, there was not a single case of this found.
 
 # Measure: Accuracy vs. F1-Score
-Im OP-Korpus sind in der betrachteten Stichprobe rund 233 von 7542 Redebeiträgen nicht erkannt worden, also 3,09 %. Weiterhin wurden 48 Redebeiträge erkannt, die eigentlich keine Redebeiträge sind.
+The are different possible metrics to measure the perfomance for this kind of task. The easiest one to compute is accuracy, that show that considers the proportion of correct predictions out of all predictions made. For the fest few iterations of the the LSTM model, when the development process was very exploritory this metric was used to determine the best performing model epoch in training and to validate the models itself.
 
-How to compare 
-Understanding Recall, Precision, F1-Score
-https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856
+The very good results of this process showed the need for a better measure of performance, for two reasons the first being practical: As the Open Discourse Corpus works completely different, the accuracy can't be computed as the input data ist not prefiltered as this one and is the complete raw test. The "negatives" in the training data does not exist for the OP-System, so it can't be counted:
+`accuracy = true_predictions / (true_predictions + false_predictions)``
 
+The other reason is that the accuracy gives little weight to false_negatives (i.e. instances of speeches that were not identified by the model). The issue lies with unbalanced data, where one kind of outcome is more common than the other, in the data we have 7000 strings that are the beginning pf speeches but over 14.000 that are not. A common example to illustrate this, is a hypothetical cancer test, were 300 people get tested, 270 do not have cancer and get the right negative (true negative) result - "no cancer", but 30 people with cancer the wrong negative result (false negative). However this not working test, that always predicts "no cancer", has an accuracy of 90 %.[[2](#ref_2)]
 
-https://en.wikipedia.org/wiki/Sensitivity_and_specificity
-Therefore F1-Score (2 * true_positive / (2 *  true_positive + false_positive + false_negative)):
+The F1-Score is a better metric here, as it takes into account both precision and recall. Precision is the proportion of true positive predictions (i.e. correctly identifying a speech string) out of all positive predictions made by the model. Recall is the proportion of true positive predictions out of all actual instances.[[3](#ref_3)]
+
+Implemented these look therefore like this:
+`f1_score = (2 * true_positive / (2 * true_positive + false_positive + false_negative))`
+`accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive)`
+
+With this we can calculate the F1-Score for the Open Discourse Corpus:
 2 * 7309 / (2* 7309 + 233 + 48) = 0.9811
 
-
 # Model comparison
+Here three different kinds of architectures are being compared: LSTM, LSTM + FFasttext embeddings, BERT.
+While the first are both based on the Long short-term memory (LSTM) architecture, the second used pretrained embeddings to encode the text. BERT is short for Bidirectional Encoder Representations is a transformer-based machine learning technique and today widely used for NLP tasks.
+
+The evolutionary step between LSTM and BERT are LSTM models with the Attention mechanism but is omitted here due to limited scope.
+
+
 ## LSTM architecture
 
 Changes:
@@ -69,6 +79,7 @@ Bad results because of the padding in the test data
 
 
 ## Pretrained Bert model
+https://arxiv.org/abs/1810.04805
 
 | #   | used epoch | f1_score  |
 |-----|------------|-----------|
@@ -95,6 +106,15 @@ Bad results because of the padding in the test data
 | bert_2         | 5           | 0.9976      | 0.9968      | 5           | 0.9998      | 0.9998      |
 | bert_4         | 2           | 0.9990      | 0.9987      | 2           | 0.9999      | 0.9999      |
 | open_discourse |             |             |             | 281         |             | 0.9811      |
+
+
+# References
+<a name="ref_2"></a>[1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
+
+<a name="ref_2"></a>[2] Aakash Bindal, Measuring just Accuracy is not enough in machine learning, A better technique is required.., Techspace 2019, 
+https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856 (checked: 05.12.2022).
+
+<a name="ref_3"></a>[3] Sensitivity and specificity, Wikipedia, https://en.wikipedia.org/wiki/Sensitivity_and_specificity (checked: 05.12.2022).
 
 
 
