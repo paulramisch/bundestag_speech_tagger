@@ -1,0 +1,4 @@
+,Unnamed: 0,protocol_id,nr,id,string,is_speech,classifier_output_int,int,classifier_output
+639,639,14150,136,14150136,"Günther Friedrich Nolting (F.D.P.) (von Abgeordne-
+ten der F.D.P. mit Beifall begrüßt):",True,0,[ 4.23103905 -4.29412174],False
+20301,20301,9126,558,9126558,"Häfele, zur Konzeption:",False,1,[-3.82437587  4.04452753],True
