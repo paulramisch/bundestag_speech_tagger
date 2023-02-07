@@ -61,13 +61,15 @@ The way this is dealt with, is therefore a combination of comparing the performa
 The good quantitative results therefore lead to a careful consideration between the validation data results and the results on the whole dataset - data of which the models have seen 80 % during training.
 
 # 3. Machine Learning Models
-Here three different kinds of architecture approaches are being compared: LSTM, LSTM + Fasttext embeddings and BERT.
+Here three different kinds of architecture approaches are being compared: BiLSTM, BiLSTM + Fasttext embeddings and BERT.
 While the first are both based on the Long short-term memory (LSTM) architecture, the second used pretrained embeddings to encode the text. BERT is short for Bidirectional Encoder Representations is a transformer-based machine learning technique and today widely used for NLP tasks.
 
 The evolutionary step between LSTM and BERT are LSTM models with the Attention mechanism but is omitted here due to limited scope of this study.
 
 ## 3.1 LSTM architecture
 LSTM (Long Short-Term Memory) is a type of Recurrent Neural Network (RNN) architecture was is specifically developed to overcome the vanishing gradient problem in traditional RNNs by allowing the network to selectively retain information from previous time steps. In the context of NLP, the vanishing gradient problem can pose a significant challenge for traditional Recurrent Neural Networks (RNNs) in processing long sequences of text data.[[12]](#ref_12) As the gradients become very small during the error backpropagation process, it becomes difficult for the network to effectively learn from the long-term dependencies in the text data. LSTMs are comprised of memory cells, gates, and activation functions that help regulate the flow of information into and out of the cells.[[13]](#ref_13)
+
+Here a special variation of an LSTM is used: A BiLSTM (Bidirectional Long Short-Term Memory networks), a variation of LSTMs that are bidirectional, meaning they process the input sequence in both forward and backward directions, allowing them to capture both past and future context in the hidden state representation.[[14]](#ref_14)
 
 The input strings from the speeches go through an embedding layer that is used to convert the input text data into word representations in the form of vector embeddings, but it is not pre-trained on external data. Instead, the embeddings are learned from scratch during training, using the input text data to update the model parameters.
 
@@ -79,7 +81,7 @@ Another major shift was from token/word level to character level. While the resu
 
 To further facilitate this, a random masking of characters was added: The masked characters are exchanged against an `<mask>`-Token. The best result was yieled by masking 30 % of the characters. 
 
-A dropout was added in the 24 model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[[14]](#ref_14)
+A dropout was added in the 24 model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[[15]](#ref_15)
 
 Up until the 24th model the LSTM was single layered, then a second layer was added, that is feed with learned representations from the first layer. 
 
@@ -87,9 +89,9 @@ The combination of a dropout of 20% and the second LSTM layer led to the best re
 
 
 ## 3.2 LSTM architecture with Fasttext embeddings
-The next architecture is the same, however the Embeddings layer is different, instead of the limited representations learned from the input data it uses a pretrained Embedding layer, with Facebooks FastText.[[15]](#ref_15) While FastText is often used for the embedding through a bag of words approach, here just the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
+The next architecture is the same, however the Embeddings layer is different, instead of the limited representations learned from the input data it uses a pretrained Embedding layer, with Facebooks FastText.[[16]](#ref_16) While FastText is often used for the embedding through a bag of words approach, here just the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
 
-There are other pretrained embeddings, e.g. based on Googles Word2Vec algorithm. However the Fasttext model is trained on a broader dataset than the most common German Word2Vec set.[[16]](#ref_16)
+There are other pretrained embeddings, e.g. based on Googles Word2Vec algorithm. However the Fasttext model is trained on a broader dataset than the most common German Word2Vec set.[[17]](#ref_17)
 
 However as shown in the after iterating over the parameters for [four models and seven training iterations](#appendix_2) the results are objectivly very good, with F1 scores of up to 0.9974 on the validation data but still not as good as the LSTM performance.
 
@@ -97,9 +99,11 @@ Running the Fasttext LSTM with the test data showed very poor performance, howev
 
 Thus the character level LSTM does not only peform better, but although is much more efficient in terms of memory and power usage.
 
-## 3.3 Pretrained Bert model
+## 3.3 Pretrained BERT model
+Transformers are a type of neural network architecture originally introduced in the 2017 paper "Attention is All You Need".[[18]](#ref_18) Transformers are called so because they use self-attention mechanisms, to transform and consider the relationships between all input elements at once. This is in contrast to recurrent neural networks like LSTM, which process sequences one element at a time. Transformers are highly parallelizable and can be trained on large amounts of data, making them well suited for NLP tasks that require understanding of long-range dependencies in language. BERT (Bidirectional Encoder Representations from Transformers), in particular, is a pre-trained transformer-based language model that has been trained on a massive corpus of text data, allowing it to be fine-tuned for specific NLP tasks with relatively small amounts of task-specific training data.[[19]](#ref_19)
 
-https://arxiv.org/abs/1810.04805
+While there exist pretrained BERT models for training, the models were not compatible with the M1 Processor that was intially used for development. After first tests with the original BERT model from the paper it was trained on a university machine as the M1 processor would have taken approxamitly a day to train. On the Intel Xeon Gold 6254 with over 700 GB RAM and a NVIDIA A100 80G it took around 30 minutes.
+
 
 
 14150: "Günther Friedrich Nolting (F.D.P.) (von Abgeordne-\nten der F.D.P. mit Beifall begrüßt):"
@@ -152,13 +156,19 @@ https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-mach
 
 <a name="ref_13"></a>[13] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 19-20. 
 
-<a name="ref_14"></a>[14] Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
+<a name="ref_14"></a>[14]  Staudemeyer, Rothstein Morris, Understanding LSTM, p. 29. 
 
-<a name="ref_15"></a>[15] Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
+<a name="ref_15"></a>[15] Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
 
-<a name="ref_16"></a>[16] Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
+<a name="ref_16"></a>[16] Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
+
+<a name="ref_17"></a>[17] Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
 
 Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/GermanWordEmbeddings (checked: 07.02.23).
+
+<a name="ref_18"></a>[18] Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
+
+<a name="ref_19"></a>[19] Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, CoRR 2018, https://arxiv.org/abs/1810.04805 (checked: 07.02.23), p. 1-2. 
 
 # 5. Appendix
 <a name="appendix_1"></a>[13] ## 5.1 LSTM architecture
