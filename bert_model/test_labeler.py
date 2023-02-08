@@ -55,8 +55,20 @@ if __name__ == '__main__':
 
     # Find mistakes
     mistakes = annotated_data[annotated_data["classifier_output"] != annotated_data["is_speech"]]
+
+    # Get mistake count
+    true_positive_prediction = len(annotated_data[(annotated_data["is_speech"] == True) & (annotated_data["classifier_output"] == annotated_data["is_speech"])])
+    true_negative_prediction = len(annotated_data[(annotated_data["is_speech"] == False) & (annotated_data["classifier_output"] == annotated_data["is_speech"])])
+    false_positive_prediction = len(annotated_data[(annotated_data["is_speech"] == False) & (annotated_data["classifier_output"] != annotated_data["is_speech"])])
+    false_false_prediction = len(annotated_data[(annotated_data["is_speech"] == True) & (annotated_data["classifier_output"] != annotated_data["is_speech"])])
+
+    # Calculate f1 score
+    f1_score = (2 * true_positive_prediction / (2 * true_positive_prediction + false_positive_prediction + false_false_prediction))
+
+    # Print results
     print(len(mistakes), " - ", round(len(mistakes) / len(annotated_data), 4))
-    print(mistakes)
+    print(f"Final F1 score: {round(f1_score, 4)}"
+          f"\ntp: {true_positive_prediction} tn: {true_negative_prediction} fp: {false_positive_prediction} fn: {false_false_prediction}")
 
     # Save mistakes dataframe
     mistakes.to_csv("test_mistakes.csv")

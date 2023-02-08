@@ -102,30 +102,40 @@ Thus the character level LSTM does not only peform better, but although is much 
 ## 3.3 Pretrained BERT model
 Transformers are a type of neural network architecture originally introduced in the 2017 paper "Attention is All You Need".[[18]](#ref_18) Transformers are called so because they use self-attention mechanisms, to transform and consider the relationships between all input elements at once. This is in contrast to recurrent neural networks like LSTM, which process sequences one element at a time. Transformers are highly parallelizable and can be trained on large amounts of data, making them well suited for NLP tasks that require understanding of long-range dependencies in language. BERT (Bidirectional Encoder Representations from Transformers), in particular, is a pre-trained transformer-based language model that has been trained on a massive corpus of text data, allowing it to be fine-tuned for specific NLP tasks with relatively small amounts of task-specific training data.[[19]](#ref_19)
 
-While there are pretrained BERT models for German, the models were not compatible with the M1 Processor that was intially used for development. After first tests with the original BERT model from the paper which was trained for english it was trained on a university machine as the M1 processor would have taken approxamitly a day to train. On the Intel Xeon Gold 6254 with over 700 GB RAM and a NVIDIA A100 80G it took around 30 minutes.
+The implementation that was used is from the python package [simple transformers](https://simpletransformers.ai/), it offers ready made transformer architectures for a variety of applications, here we use it for the binary classification.[[20]](#ref_20) There are pretrained [BERT models for German](https://huggingface.co/bert-base-german-cased), however at the time of testing the model was not compatible with the Mac M1 processor that was intially used for development. The first iteration used the [BERT model from the paper](https://huggingface.co/bert-base-cased) that was trained on english data, the iteration two and three used a german model trained on german data.[[20]](#ref_20).
 
+As for the two LSTM architectures, in the training 80 % of the data was shown, however there was no test after each epoch; for the first iteration the validation split took 10 %; 10 % of the data therefore remained unused. For the iteration two and three the remaining 20 % became the test data.
 
+The results are impressive: The first itetation, trained with the english data, made both for the test and the whole dataset just two mistakes. The model trained on the German dataset made no mistakes on the unseen 20 % of the data and 1 single mistake on the whole dataset. The first model incorrectly did not label the string `Günther Friedrich Nolting (F.D.P.) (von Abgeordne- ten der F.D.P. mit Beifall begrüßt):`(protocoll 14-150) as a speech, and wrongly labeled the string `Häfele, zur Konzeption:` (protocoll 09-126) as a speech. The secong german trained model incorrectly labeled `CDU/CSU:`() as a speech. The english trained model seems to have learned the different structure and interpunctation of real speech beginnings, which led to reject the Nolting speech, that has a very uncommon format, and to acceptance of the Häfele string, that looks a lot like the beginning of a speech if the vocabulary is unknown. The German model seems to work with the known token/words, as there no mistakes as in the first, however the the CDU/CSU string is a big indicator for the beginning of speech, but structure wise obviously not.
 
-14150: "Günther Friedrich Nolting (F.D.P.) (von Abgeordne-\nten der F.D.P. mit Beifall begrüßt):"
-09126: "Häfele, zur Konzeption:"
 
 ## 3.4 Model comparison
+
 | model          | td_mistakes | td_accuracy | td_f1_score | fd_mistakes | fd_accuracy | fd_f1_score |
 |----------------|-------------|-------------|-------------|-------------|-------------|-------------|
-| lstm_10.2      | 0           | 1.0         | 1.0         | 992         | 0.9523      |             |
-| lstm_17.1      | 0           | 1.0         | 1.0         | 25          | 0.9988      |             |
-| lstm_20        | 1           | 0.9995      | 0.9993      | 28          | 0.9987      |             |
+| lstm_10.2      | 0           | 1.0         | 1.0         | 992         | 0.9523      | -           |
+| lstm_17.1      | 0           | 1.0         | 1.0         | 25          | 0.9988      | -           |
+| lstm_20        | 1           | 0.9995      | 0.9993      | 28          | 0.9987      | -           |
 | lstm_24.1      | 2           | 0.9990      | 0.9987      | 13          | 0.9994      | 0.9991      |
 | lstm_24.2      | 1           | 0.9995      | 0.9993      | 22          | 0.9989      | 0.9985      |
 | fast_3         | 7           | 0.9966      | 0.9953      | 1096        | 0.9218      | 0.9218      |
-| bert_2         | 5           | 0.9976      | 0.9968      | 5           | 0.9998      | 0.9998      |
-| bert_4         | 2           | 0.9990      | 0.9987      | 2           | 0.9999      | 0.9999      |
-| open_discourse |             |             |             | 281         |             | 0.9811      |
+| bert_1_e2      | -           | -           | -           | 5           | 0.9998      | 0.9998      |
+| bert_1_e5      | 2           | 0.9990      | 0.9987      | 2           | 0.9999      | 0.9999      |
+| bert_2_e5      | 0           | 1.0         | 1.0         | 1           | 0.9999      | 0.9999      |
+| open_discourse | -           | -           | -           | 281         | -           | 0.9811      |
+Table 1: Results of different ML architectures and Open Discourse
+
+
 
 
 # 4. Conclusion
 The models 
 
+- Better than human, however: Noise vs. structure
+
+Better next time:
+- Generate plausible training data (OCR mistakes)
+- Exchange names and partys
 
 # References
 <a name="ref_1"></a>[1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
@@ -169,6 +179,13 @@ Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/
 <a name="ref_18"></a>[18] Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
 
 <a name="ref_19"></a>[19] Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, CoRR 2018, https://arxiv.org/abs/1810.04805 (checked: 07.02.23), p. 1-2. 
+
+<a name="ref_20"></a>[20] Classification Models, Simple Transformers 2020, https://simpletransformers.ai/docs/classification-models/ (checked: 07.02.23).
+
+<a name="ref_20"></a>[21] Jacob Devlin, bert-base-cased, Hugging Face 2018, https://huggingface.co/bert-base-cased (checked: 08.02.23).
+
+Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggingface.co/bert-base-german-cased (checked: 08.02.23).
+
 
 # 5. Appendix
 <a name="appendix_1"></a>[13] ## 5.1 LSTM architecture
@@ -236,35 +253,42 @@ Major Changes:
 | 4.2 | 70     | 0.05 | 10    | 5          | 3          | 0.994    |
 
 <a name="appendix_3"></a>## 5.3 BERT
-| #   | used epoch | f1_score  |
-|-----|------------|-----------|
-| 2   | 2          | 0.9968    |
-| 4   | 4          | 0.9987    |
-| 5   | 5          | 0.9987    |
+| #      | pretrained model       | used epoch | f1_score  |
+|--------|------------------------|------------|-----------|
+| 1_e2   | bert-base-cased        | 2          |           |
+| 1_e4   | bert-base-cased        | 4          |           |
+| 1_e5   | bert-base-cased        | 5          | 0.9987    |
+| 2_e5   | bert-base-german-cased | 5          | 1.0       |
+| 3_e10  | bert-base-german-cased | 10         | 0.9998    |
+
 
 ## 5.3 Validation on whole dataset
-| model     | mistakes | tp   | tn    | fp | fn   | accuracy | f1_score | comment     |
-|-----------|----------|------|-------|----|------|----------|----------|-------------|
-| lstm_10.2 | 992      |      |       |    |      | 0.9523   |          | Batch issue |
-| lstm_12   | 2092     |      |       |    |      | 0.8993   |          | Batch issue |
-| lstm_14   | 83       |      |       |    |      | 0.996    |          |             |
-| lstm_15   | 16       |      |       |    |      | 0.9992   |          |             |
-| lstm_16   | 57       |      |       |    |      | 0.9973   |          |             |
-| lstm_17.1 | 25       |      |       |    |      | 0.9988   |          |             |
-| lstm_17.2 | 123      |      |       |    |      | 0.9941   |          |             |
-| lstm_17.3 | 36       |      |       |    |      | 0.9983   |          |             |
-| lstm_17.4 | 20       | 7534 | 13222 | 8  | 12   | 0.999    | 0.9987   |             |
-| lstm_18   | 42       |      |       |    |      | 0.998    |          |             |
-| lstm_19   | 87       |      |       |    |      | 0.9958   |          |             |
-| lstm_20   | 28       |      |       |    |      | 0.9987   |          |             |
-| lstm_21   | 44       |      |       |    |      | 0.9979   |          |             |
-| lstm_22   | 43       |      |       |    |      | 0.9979   |          |             |
-| lstm_23   | 25       |      |       |    |      | 0.9988   |          |             |
-| lstm_24.1 | 13       | 7541 | 13222 | 8  | 5    | 0.9994   | 0.9991   |             |
-| lstm_24.2 | 22       | 7539 | 13215 | 15 | 7    | 0.9989   | 0.9985   |             |
-| lstm_25   | 15       | 7537 | 13224 | 6  | 9    | 0.9993   | 0.9990   |             |
-| lstm_26   | 18       | 7541 | 13217 | 13 | 5    | 0.9991   | 0.9988   |             |
-| fast_3    | 1096     | 6458 | 13222 | 8  | 1088 | 0.9218   | 0.9218   | Batch issue |
-| bert_2    | 5        |      |       |    |      | 0.9998   | 0.9998   |             |
-| bert_4    | 2        | 7545 | 13229 | 1  | 1    | 0.9999   | 0.9999   |             |
-| bert_5    | 2        | 7545 | 13299 | 1  | 1    | 0.9999   | 0.9999   |             |
+| model      | mistakes | tp   | tn    | fp | fn   | accuracy | f1_score | comment     |
+|------------|----------|------|-------|----|------|----------|----------|-------------|
+| lstm_10.2  | 992      |      |       |    |      | 0.9523   |          | Batch issue |
+| lstm_12    | 2092     |      |       |    |      | 0.8993   |          | Batch issue |
+| lstm_14    | 83       |      |       |    |      | 0.996    |          |             |
+| lstm_15    | 16       |      |       |    |      | 0.9992   |          |             |
+| lstm_16    | 57       |      |       |    |      | 0.9973   |          |             |
+| lstm_17.1  | 25       |      |       |    |      | 0.9988   |          |             |
+| lstm_17.2  | 123      |      |       |    |      | 0.9941   |          |             |
+| lstm_17.3  | 36       |      |       |    |      | 0.9983   |          |             |
+| lstm_17.4  | 20       | 7534 | 13222 | 8  | 12   | 0.999    | 0.9987   |             |
+| lstm_18    | 42       |      |       |    |      | 0.998    |          |             |
+| lstm_19    | 87       |      |       |    |      | 0.9958   |          |             |
+| lstm_20    | 28       |      |       |    |      | 0.9987   |          |             |
+| lstm_21    | 44       |      |       |    |      | 0.9979   |          |             |
+| lstm_22    | 43       |      |       |    |      | 0.9979   |          |             |
+| lstm_23    | 25       |      |       |    |      | 0.9988   |          |             |
+| lstm_24.1  | 13       | 7541 | 13222 | 8  | 5    | 0.9994   | 0.9991   |             |
+| lstm_24.2  | 22       | 7539 | 13215 | 15 | 7    | 0.9989   | 0.9985   |             |
+| lstm_25    | 15       | 7537 | 13224 | 6  | 9    | 0.9993   | 0.9990   |             |
+| lstm_26    | 18       | 7541 | 13217 | 13 | 5    | 0.9991   | 0.9988   |             |
+| fast_3     | 1096     | 6458 | 13222 | 8  | 1088 | 0.9218   | 0.9218   | Batch issue |
+| bert_1_e2  | 5        |      |       |    |      | 0.9998   | 0.9998   |             |
+| bert_1_e4  | 2        | 7545 | 13229 | 1  | 1    | 0.9999   | 0.9999   |             |
+| bert_1_e5  | 2        | 7545 | 13299 | 1  | 1    | 0.9999   | 0.9999   |             |
+| bert_2_e4  | 3        | 7544 | 13229 | 1  | 2    |          | 0.9998   |             |
+| bert_2_e5  | 1        | 7546 | 13229 | 1  | 0    | 0.9999   | 0.9999   |             |
+| bert_3_e5  | 12       | 7545 | 13219 | 11 | 1    |          | 0.9992   |             |
+| bert_3_e10 | 3        | 7544 | 13229 | 1  | 2    |          | 0.9998   |             |
