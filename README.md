@@ -1,16 +1,16 @@
 # bundestag_speech_tagger
-The Bundestag Speech Tagger is a group of machine learning (ML) models trained to classify the beginning of speeches in Plenary protocols of the German Bundestag. In the following the need, development process and evualation are documented.
+The Bundestag Speech Tagger repository is an evaluation of machine learning (ML) models trained to classify the beginning of speeches in the plenary transcripts of the German Bundestag. In the following, the need, the development process and the evaluation are documented.
 
 # 1. Introduction
-The project [Open Discourse](https://opendiscourse.de/) (OP) offers a database of all the speeches that were held in the German Parliament, the Bundestag.[[1]](#ref_1) To accomplish this, the research team used OCR- and/or PDF-extracted texts of the protocols and cut them into the single speeches by using Regex-based heuristics. These complex heuristics cover the majority of the cases but approximately 3 % of the original speeches are missing. Furthermore, there are speeches in Open Discourse corpora, that are in fact not speeches.[[2]](#ref_2)
+The project [Open Discourse](https://opendiscourse.de/) (OP) offers a database of all speeches held in the German parliament, the Bundestag.[[1]](#ref_1) To achieve this, the research team used OCR- and/or PDF-extracted texts of the transcripts and cut them into individual speeches using Regex-based heuristics. These complex heuristics cover the majority of cases, but about 3% of the original speeches are missing. Furthermore, there are speeches in Open Discourse corpora that are not actually speeches.[[2]](#ref_2)
 
-The heuristics are based on a few lines preceding the speech with the name, party and function of the speaker, three complex Regular Expression (RegEx) patterns where written for this.[[3]](#ref_3) While the RegEx pattern are public, there is no documentation of their development. The approach of using RegEx to structure unstructered (plenary) documents is very common, and was also used for the similar GermaParl corpus.[[4]](#ref_4)
+The heuristics are based on a few lines preceding the speech with the speaker's name, party and function, for which three complex Regular Expression (RegEx) patterns were written.[[3]](#ref_3) Although the RegEx patterns are public, there is no documentation of their development. The approach of using RegEx to structure unstructured (plenary) documents is very common, and was also used for the similar GermaParl corpus.[[4]](#ref_4)
 
-If these "meta information" about a speech are found, the system sees this as a start of a new speech, and cuts of the preceding speech. So a mistake here always also affects the previous speech as well. In the recent preprint paper for the corpus the team states two known issues for the electoral terms 1, 2, 19 and 20.[[5]](#ref_5) The issues are unfortuneatly wider spread and cover all the electoral terms in the OP corpus.[[6]](#ref_6)
+When this "meta-information" about a speech is found, the system sees it as the beginning of a new speech, and cuts of the preceding speech. So an error here always affects the previous speech as well. In the recent preprint paper for the corpus, the team identifies two known problems for election terms 1, 2, 19 and 20.[[5]](#ref_5) Unfortunately, the problems are more widespread, covering all election terms in the OP corpus.[[6]](#ref_6)
 
-It is important to note that this task is very complex as the structure of these lines and their information changed a lot over the 70 years the corpus mirrors. Adding to that there are also typing and OCR errors and RegEx patterns are very sensible and only match exactly the exact pattern.[[7]](#ref_7)
+It is important to note that this task is very complex, as the structure of these lines and the information they contain has changed a lot over the 70 years that the corpus reflects. There are also typing and OCR errors, and RegEx patterns are very sensitive and only match the exact pattern.[[7]](#ref_7)
 
-This work tries to get better results than a heuristic by using Natural Language Processing techniques for the classification of possible speech starts. Many machine learning task where exactly developed for this use and the use of ML models to structure XML files isn't a common resarch trope. This work is insofar special at it aims not for general use but for near-perfect results on a specific dataset and to overtake heuristic approaches that where developed with great care. Both to reduce the effort needed for this task while increasing the quality of the classifications.
+This work tries to find out, whether it easyly possible to get better results than a heuristic by using Natural Language Processing techniques for the classification of possible speech starts. Many machine learning tasks where exactly developed for this use and the use of ML models to structure XML files isn't a uncommon resarch trope. This work is insofar special at it aims not for general use but for near-perfect results on a specific dataset and to overtake heuristic approaches that where developed with great care. Both to reduce the effort needed for this task while increasing the quality of the classifications.
 
 # 2. Approach & preparation
 The approach for contains two steps: A very basic heuristic that identifies and extracts (multi)lines that end or contain a colon, as a the start of speech contains a colon. These extracted strings then are feed for classification to a machine learning model. The machine learning models are based on common architectures in Natural Language Processing (NLP): LSTM, LSTM with FastText Embeddings, BERT.
@@ -20,7 +20,7 @@ In this approach we only classificate short strings, a possible alternative woul
 More importantly the LSTM architecture would need a sentence level encoding, instead of word or character level encoding. First tests showed, that files of up to 1 or 2mb and hundreds of thousands tokens interfere with the architectures capabilities. LSTMs can keep track of over 1.000 timesteps which represent tokens/words here.[[8]](#ref_8) This is not enough to gain an advantage of the taken prefilter approach but the added token act as noise and have a huge negative impact on the systems performance, however this might not be true for transformer networks - this hasn't been tested in this work. Sentence level encoding on the other hand leads to huge loss of informartion towards certain token that are needed for this classificiation such as commas, dots and colons.
 
 ## 2.1 Training data preparation
-The first step is the data preparation: In order to train the model there is training data needed. For this 36 out of the approximately 5000 protocols were annotated, containing over 7000 speeches. Departing from the modeling approach in the modern XML files that are published by the German parliamentary since 2017, every time a new person speaks, it is annoated as a new speech, this mirrors the modelling of the OP data. In the Bundestag XML files, the speeches of the speaker are modelled as of the speech of the politicans. The data 36 where worked through twice and automaticly checked for plausibility.[[9]](#ref_9)
+The first step is the data preparation: In order to train the model there is training data needed. For this 36 out of the approximately 5000 protocols were annotated, containing over 7000 speeches, for all the examined periods 1-18 two each. Departing from the modeling approach in the modern XML files that are published by the German parliamentary since 2017, every time a new person speaks, it is annoated as a new speech, this mirrors the modelling of the OP data. In the Bundestag XML files, the speeches of the speaker are modelled as of the speech of the politicans. The data 36 where worked through twice and automaticly checked for plausibility.[[9]](#ref_9)
 
 The training data is created by extracting all strings of up 150 characters (all possible characters, including whitespace, line breaks and numbers) that with a colon with this RegEx pattern: `^.{5,150}?:`. If such a string is directly following the annotated speech tag, it is considered a positive, that is a speech beginning, if not it is tagged as negative, which means not a speech start but just speech content.
 
@@ -62,7 +62,7 @@ The good quantitative results therefore lead to a careful consideration between 
 
 # 3. Machine Learning Models
 Here three different kinds of architecture approaches are being compared: BiLSTM, BiLSTM + Fasttext embeddings and BERT.
-While the first are both based on the Long short-term memory (LSTM) architecture, the second used pretrained embeddings to encode the text. BERT is short for Bidirectional Encoder Representations is a transformer-based machine learning technique and today widely used for NLP tasks.
+While the first are both based on the Long short-term memory (LSTM) architecture, the second used pretrained embeddings to encode the text. BERT is short for Bidirectional Encoder Representations is a transformer-based machine learning technique and today widely used for NLP tasks. These architectures can be used for a variety of different applications, here we use it for a sequence classification task. From a sequence of inputs in the form of tokens or characters, the result is a binary classification as True or False, answering wether the sequence represents a speech according to the model.
 
 The evolutionary step between LSTM and BERT are LSTM models with the Attention mechanism but is omitted here due to limited scope of this study.
 
@@ -77,11 +77,11 @@ During the iterative development of the 26 different combinations of parameters 
 
 The measure was exchanged from accuracy to F1 score for model 12 because of the considerations from chapter 2.2. Furthermore in the evaluation of model 15, the four manually  annotated speeches that were wrong, were corrected, as noted in chapter 2.1. This also means, that the results of the models 1-15 need to be cosidered carefully.
 
-Another major shift was from token/word level to character level. While the results seemed really good on the test data a validation on the whole dataset - so although data it had seen during training, revealed, that the system just memorized the speaker names, but did not learn the structure. So it performs poorly on data is hasn't seen. This problem has become much smaller on character level.
+Another major shift was from token/word level to character level. The results of the previous model 10 seemed impressive with a F1 score of 1.0 on the test data and the full data set with a F1 score of 0.9999. However, after going through the list of mistakes it made on full data set, it became obious, that the system just memorized the speakers names, but did not learn the structure. So it performs poorly on data it hasn't seen yet. This problem has become much smaller on character level.
 
 To further facilitate this, a random masking of characters was added: The masked characters are exchanged against an `<mask>`-Token. The best result was yieled by masking 30 % of the characters. 
 
-A dropout was added in the 24 model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[[15]](#ref_15)
+A dropout was added in the 24th model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[[15]](#ref_15)
 
 Up until the 24th model the LSTM was single layered, then a second layer was added, that is feed with learned representations from the first layer. 
 
@@ -102,93 +102,48 @@ Thus the character level LSTM does not only peform better, but although is much 
 ## 3.3 Pretrained BERT model
 Transformers are a type of neural network architecture originally introduced in the 2017 paper "Attention is All You Need".[[18]](#ref_18) Transformers are called so because they use self-attention mechanisms, to transform and consider the relationships between all input elements at once. This is in contrast to recurrent neural networks like LSTM, which process sequences one element at a time. Transformers are highly parallelizable and can be trained on large amounts of data, making them well suited for NLP tasks that require understanding of long-range dependencies in language. BERT (Bidirectional Encoder Representations from Transformers), in particular, is a pre-trained transformer-based language model that has been trained on a massive corpus of text data, allowing it to be fine-tuned for specific NLP tasks with relatively small amounts of task-specific training data.[[19]](#ref_19)
 
-The implementation that was used is from the python package [simple transformers](https://simpletransformers.ai/), it offers ready made transformer architectures for a variety of applications, here we use it for the binary classification.[[20]](#ref_20) There are pretrained [BERT models for German](https://huggingface.co/bert-base-german-cased), however at the time of testing the model was not compatible with the Mac M1 processor that was intially used for development. The first iteration used the [BERT model from the paper](https://huggingface.co/bert-base-cased) that was trained on english data, the iteration two and three used a german model trained on german data.[[20]](#ref_20).
+The implementation that was used is from the python package [simple transformers](https://simpletransformers.ai/), it offers ready made transformer architectures for a variety of applications, here we use it for the binary classification.[[20]](#ref_20) The development of this model was by far the easiest as simple transformers does all heavy code lifting. There are pretrained [BERT models for German](https://huggingface.co/bert-base-german-cased), however at the time of testing the model was not compatible with the Mac M1 processor that was intially used for development. The first iteration used the [BERT model from the paper](https://huggingface.co/bert-base-cased) that was trained on english data, the iteration two and three used a german model trained on german data.[[20]](#ref_20).
 
 As for the two LSTM architectures, in the training 80 % of the data was shown, however there was no test after each epoch; for the first iteration the validation split took 10 %; 10 % of the data therefore remained unused. For the iteration two and three the remaining 20 % became the test data.
 
-The results are impressive: The first itetation, trained with the english data, made both for the test and the whole dataset just two mistakes. The model trained on the German dataset made no mistakes on the unseen 20 % of the data and 1 single mistake on the whole dataset. The first model incorrectly did not label the string `Günther Friedrich Nolting (F.D.P.) (von Abgeordne- ten der F.D.P. mit Beifall begrüßt):`(protocoll 14-150) as a speech, and wrongly labeled the string `Häfele, zur Konzeption:` (protocoll 09-126) as a speech. The secong german trained model incorrectly labeled `CDU/CSU:`() as a speech. The english trained model seems to have learned the different structure and interpunctation of real speech beginnings, which led to reject the Nolting speech, that has a very uncommon format, and to acceptance of the Häfele string, that looks a lot like the beginning of a speech if the vocabulary is unknown. The German model seems to work with the known token/words, as there no mistakes as in the first, however the the CDU/CSU string is a big indicator for the beginning of speech, but structure wise obviously not.
+The results are impressive: The first itetation, pre-trained with the english data, made both for the test and the whole dataset just two mistakes. The model pre-trained on the German dataset made no mistakes on the unseen 20 % of the data and 1 single mistake on the whole dataset. The third iteration although shows good results but does no get to the same level as the previous two iterations, while still having all the same parameters as the second showing the non-deterministism of learning systems.
 
+The first model incorrectly did not label the string `Günther Friedrich Nolting (F.D.P.) (von Abgeordne- ten der F.D.P. mit Beifall begrüßt):`(protocoll 14-150) as a speech, and wrongly labeled the string `Häfele, zur Konzeption:` (protocoll 09-126) as a speech. The secong german trained model incorrectly labeled `CDU/CSU:`() as a speech. The english trained model seems to have learned the different structure and interpunctation of real speech beginnings, which led to reject the Nolting speech, that has a very uncommon format, and to acceptance of the Häfele string, that looks a lot like the beginning of a speech if the vocabulary is unknown. The German model seems to work with the known token/words, as there no mistakes as in the first, however the the CDU/CSU string is a big indicator for the beginning of speech, but structure wise obviously not.
 
 ## 3.4 Model comparison
-
 | model          | td_mistakes | td_accuracy | td_f1_score | fd_mistakes | fd_accuracy | fd_f1_score |
 |----------------|-------------|-------------|-------------|-------------|-------------|-------------|
-| lstm_10.2      | 0           | 1.0         | 1.0         | 992         | 0.9523      | -           |
+| lstm_10.2*     | 0           | 1.0         | 1.0         | 13          | 0.9994      | 0.9991      |
 | lstm_17.1      | 0           | 1.0         | 1.0         | 25          | 0.9988      | -           |
 | lstm_20        | 1           | 0.9995      | 0.9993      | 28          | 0.9987      | -           |
 | lstm_24.1      | 2           | 0.9990      | 0.9987      | 13          | 0.9994      | 0.9991      |
 | lstm_24.2      | 1           | 0.9995      | 0.9993      | 22          | 0.9989      | 0.9985      |
-| fast_3         | 7           | 0.9966      | 0.9953      | 1096        | 0.9218      | 0.9218      |
+| fast_3         | 7           | 0.9966      | 0.9953      | 1096*       | 0.9218*     | 0.9218**    |
 | bert_1_e2      | -           | -           | -           | 5           | 0.9998      | 0.9998      |
 | bert_1_e5      | 2           | 0.9990      | 0.9987      | 2           | 0.9999      | 0.9999      |
 | bert_2_e5      | 0           | 1.0         | 1.0         | 1           | 0.9999      | 0.9999      |
 | open_discourse | -           | -           | -           | 281         | -           | 0.9811      |
-Table 1: Results of different ML architectures and Open Discourse
 
+Table 1: Overview of best results for different ML architectures and Open Discourse, * Tested but not trained on updated data, ** Batch issue in the test implementation
 
+The table shows nine of the best performing models and three different architectures compared to the results of the Open Discouse Corpus Code. All the models - with exception if the FastText because of implemention issues, perform better than the Open Discourse Heuristics.
 
+While the first two LSTM models work on word level and just memorize speaker names, and therefore will not keep their test accuracy scores on the different dat. The other models learn the structure of the data but most likely are although are aided by the names they saw during training.
+
+The performance of the BERT models is outstanding: The two best performing models get a F1 score of 0.9999 on the full dataset, while bert_2_e5 gets an accuracy of 1.0 with no mistakes on the validation data, that represent 20 % of the whole dataset in that case.
+The performance of the model bert_1_e2, that was pre-trained on english, shows the great ability to adapt that makes BERT such a good architecture.
 
 # 4. Conclusion
-The models 
+The models show that the development of a ML model that outperforms complex heuristical approaches for the classification of speeches from parliamentary minutes is not only possible, but yields great results. A F1 score of 1.0 on the test data and 0.999999 on the whole dataset is far better than the Open Discourse F1 score of 0.9811.
 
-- Better than human, however: Noise vs. structure
+It is important to note, that the random training and test data split all derive from the same files. For a real research and development, the training and test data should derive from different files, which would ideally made by annotating another file per period. Another less work intensive way would be to randomly exchange the names and party in the training data with a database of last names and random partys. Nevertheless the results show a much better performing model than the original Open Discourse implementation. With a slight improvement of the training data and proper quality control measures, there is nothing in the way of using it in production.
 
-Better next time:
-- Generate plausible training data (OCR mistakes)
-- Exchange names and partys
-
-# References
-<a name="ref_1"></a>[1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
-
-<a name="ref_2"></a>[2] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
-
-<a name="ref_3"></a>[3] 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
-
-<a name="ref_4"></a>[4] Andreas Blätte, Julia Rakers, Christoph Leonhardt, How GermaParl Evolves: Improving Data Quality by Reproducible, in: Corpus Preparation and User Involvement In Proceedings of the Workshop ParlaCLARIN III within the 13th Language Resources and Evaluation Conference 2022, https://aclanthology.org/2022.parlaclarin-1.2.pdf (checked: 02.02.2023), p. 11.
-
-<a name="ref_5"></a>[5] Florian Richter, et al., Open Discourse: Towards the First Fully Comprehensive and Annotated Corpus of the Parliamentary Protocols of the German Bundestag, SocArXiv Preprint 2023, DOI: https://doi.org/10.31235/osf.io/dx87u (checked 02.02.23), p. 10.
-
-<a name="ref_6"></a>[6] Ramisch, Open Discourse.
-
-<a name="ref_7"></a>[7] Richter, Open Discourse, p. 10.
-
-<a name="ref_8"></a>[8] Ralf C. Staudemeyer, Eric Rothstein Morris, Understanding LSTM - a tutorial into Long Short-Term Memory Recurrent Neural Networks, in CoRR 2019, https://arxiv.org/abs/1909.09586 (checked: 07.02.23), p. 2.
-
-<a name="ref_9"></a>[9] The whole process is fully documented in my digital source critique of Open Discourse:
-Ramisch, Open Discourse, chapter 4.2 Tagging der Redebeiträge, https://paulramisch.de/opendiscourse/4_vergleichskorpus.html.
-
-<a name="ref_10"></a>[10] Aakash Bindal, Measuring just Accuracy is not enough in machine learning, A better technique is required.., Techspace 2019, 
-https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856 (checked: 05.12.2022).
-
-<a name="ref_11"></a>[11] Sensitivity and specificity, Wikipedia, https://en.wikipedia.org/wiki/Sensitivity_and_specificity (checked: 05.12.2022).
-
-<a name="ref_12"></a>[12] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 2. 
-
-<a name="ref_13"></a>[13] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 19-20. 
-
-<a name="ref_14"></a>[14]  Staudemeyer, Rothstein Morris, Understanding LSTM, p. 29. 
-
-<a name="ref_15"></a>[15] Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
-
-<a name="ref_16"></a>[16] Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
-
-<a name="ref_17"></a>[17] Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
-
-Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/GermanWordEmbeddings (checked: 07.02.23).
-
-<a name="ref_18"></a>[18] Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
-
-<a name="ref_19"></a>[19] Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, CoRR 2018, https://arxiv.org/abs/1810.04805 (checked: 07.02.23), p. 1-2. 
-
-<a name="ref_20"></a>[20] Classification Models, Simple Transformers 2020, https://simpletransformers.ai/docs/classification-models/ (checked: 07.02.23).
-
-<a name="ref_20"></a>[21] Jacob Devlin, bert-base-cased, Hugging Face 2018, https://huggingface.co/bert-base-cased (checked: 08.02.23).
-
-Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggingface.co/bert-base-german-cased (checked: 08.02.23).
+The development of RegEx heuristics for this application must include a large database of annotated examples to test their performance ahead of their use in production. This work shows, that such annotated examples better directly get used as training data for a ML model. Performancewise RegEx heuristics are much more efficient, both as it doesn't need training and during execution time, and the LSTM models are more efficient than the BERT models and show great performance, too. However when it comes to effectivity the BERT model convinces. As the use case as single use annotation tool of a big dataset, these efficiency considerations recede in the face of the great results.
 
 
 # 5. Appendix
-<a name="appendix_1"></a>[13] ## 5.1 LSTM architecture
+<a name="appendix_1"></a>
+## 5.1 LSTM architecture
 Major Changes:
 * From model 12: Bewertung anhand des F1-Scores, statt Accuracy
 * From model 14: Character Level
@@ -240,8 +195,8 @@ Major Changes:
 | 25   | X        | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          |          | 0.9975   |
 | 26   | X        | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          |          | 0.9987   |
 
-
-<a name="appendix_2"></a>## 5.2 LSTM with FastText
+<a name="appendix_2"></a>
+## 5.2 LSTM with FastText
 | #   | hidden | lr   | batch | max epochs | used epoch | f1_score |
 |-----|--------|------|-------|------------|------------|----------|
 | 1   | 50     | 0.05 | 10    | 5          | 3          | 0.9955   |
@@ -252,7 +207,8 @@ Major Changes:
 | 4.1 | 70     | 0.05 | 10    | 5          | 2          | 0.9928   |
 | 4.2 | 70     | 0.05 | 10    | 5          | 3          | 0.994    |
 
-<a name="appendix_3"></a>## 5.3 BERT
+<a name="appendix_3"></a>
+## 5.3 BERT
 | #      | pretrained model       | used epoch | f1_score  |
 |--------|------------------------|------------|-----------|
 | 1_e2   | bert-base-cased        | 2          |           |
@@ -261,12 +217,11 @@ Major Changes:
 | 2_e5   | bert-base-german-cased | 5          | 1.0       |
 | 3_e10  | bert-base-german-cased | 10         | 0.9998    |
 
-
+<a name="appendix_4"></a>
 ## 5.3 Validation on whole dataset
 | model      | mistakes | tp   | tn    | fp | fn   | accuracy | f1_score | comment     |
 |------------|----------|------|-------|----|------|----------|----------|-------------|
-| lstm_10.2  | 992      |      |       |    |      | 0.9523   |          | Batch issue |
-| lstm_12    | 2092     |      |       |    |      | 0.8993   |          | Batch issue |
+| lstm_10.2  | 13       | 7537 | 13226 | 4  | 9    | 0.9994   | 0.9991   |             |
 | lstm_14    | 83       |      |       |    |      | 0.996    |          |             |
 | lstm_15    | 16       |      |       |    |      | 0.9992   |          |             |
 | lstm_16    | 57       |      |       |    |      | 0.9973   |          |             |
@@ -292,3 +247,53 @@ Major Changes:
 | bert_2_e5  | 1        | 7546 | 13229 | 1  | 0    | 0.9999   | 0.9999   |             |
 | bert_3_e5  | 12       | 7545 | 13219 | 11 | 1    |          | 0.9992   |             |
 | bert_3_e10 | 3        | 7544 | 13229 | 1  | 2    |          | 0.9998   |             |
+
+
+# References
+<a name="ref_1"></a>[1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
+
+<a name="ref_2"></a>[2] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
+
+<a name="ref_3"></a>[3] 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
+
+<a name="ref_4"></a>[4] Andreas Blätte, Julia Rakers, Christoph Leonhardt, How GermaParl Evolves: Improving Data Quality by Reproducible, in: Corpus Preparation and User Involvement In Proceedings of the Workshop ParlaCLARIN III within the 13th Language Resources and Evaluation Conference 2022, https://aclanthology.org/2022.parlaclarin-1.2.pdf (checked: 02.02.2023), p. 11.
+
+<a name="ref_5"></a>[5] Florian Richter, et al., Open Discourse: Towards the First Fully Comprehensive and Annotated Corpus of the Parliamentary Protocols of the German Bundestag, SocArXiv Preprint 2023, DOI: https://doi.org/10.31235/osf.io/dx87u (checked 02.02.23), p. 10.
+
+<a name="ref_6"></a>[6] Ramisch, Open Discourse.
+
+<a name="ref_7"></a>[7] Richter, Open Discourse, p. 10.
+
+<a name="ref_8"></a>[8] Ralf C. Staudemeyer, Eric Rothstein Morris, Understanding LSTM - a tutorial into Long Short-Term Memory Recurrent Neural Networks, in CoRR 2019, https://arxiv.org/abs/1909.09586 (checked: 07.02.23), p. 2.
+
+<a name="ref_9"></a>[9] The whole process is fully documented in my digital source critique of Open Discourse:
+Ramisch, Open Discourse, chapter 4.2 Tagging der Redebeiträge, https://paulramisch.de/opendiscourse/4_vergleichskorpus.html.
+
+<a name="ref_10"></a>[10] Aakash Bindal, Measuring just Accuracy is not enough in machine learning, A better technique is required.., Techspace 2019, 
+https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856 (checked: 05.12.2022).
+
+<a name="ref_11"></a>[11] Sensitivity and specificity, Wikipedia, https://en.wikipedia.org/wiki/Sensitivity_and_specificity (checked: 05.12.2022).
+
+<a name="ref_12"></a>[12] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 2. 
+
+<a name="ref_13"></a>[13] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 19-20. 
+
+<a name="ref_14"></a>[14]  Staudemeyer, Rothstein Morris, Understanding LSTM, p. 29. 
+
+<a name="ref_15"></a>[15] Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
+
+<a name="ref_16"></a>[16] Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
+
+<a name="ref_17"></a>[17] Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
+
+Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/GermanWordEmbeddings (checked: 07.02.23).
+
+<a name="ref_18"></a>[18] Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
+
+<a name="ref_19"></a>[19] Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, CoRR 2018, https://arxiv.org/abs/1810.04805 (checked: 07.02.23), p. 1-2. 
+
+<a name="ref_20"></a>[20] Classification Models, Simple Transformers 2020, https://simpletransformers.ai/docs/classification-models/ (checked: 07.02.23).
+
+<a name="ref_20"></a>[21] Jacob Devlin, bert-base-cased, Hugging Face 2018, https://huggingface.co/bert-base-cased (checked: 08.02.23).
+
+Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggingface.co/bert-base-german-cased (checked: 08.02.23).
