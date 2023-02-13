@@ -5,15 +5,40 @@ import os
 import re
 from lxml import etree
 import pickle
+import random
+import string
 
 import warnings
 warnings.filterwarnings("ignore")
 
 # Define paths
+noise = True
 xml_path = "annotated_protocols"
-export = "data.pkl"
-comparison_export = "comparison_data.pkl"
-comparison_export_csv = "comparison_data.csv"
+if noise:
+    export = "data_noise.pkl"
+    comparison_export = "comparison_data_noise.pkl"
+    comparison_export_csv = "comparison_data_noise.csv"
+else:
+    export = "data.pkl"
+    comparison_export = "comparison_data.pkl"
+    comparison_export_csv = "comparison_data.csv"
+
+# Function to create noise
+# It randomly exchanges 10 % of the a-z A-Z characters with another character
+def add_noise(text, noise_level=0.1):
+    if noise_level == 0:
+        return text
+
+    text = list(text)
+    n_noise = int(len(text) * noise_level)
+    noise_indices = random.sample(range(len(text)), n_noise)
+
+    for i in noise_indices:
+        if text[i] in string.ascii_letters:
+            text[i] = random.choice(string.ascii_letters)
+
+    return "".join(text)
+
 
 # Create dataframe of possible cases
 dataset_columns = ["protocol_id", "nr", "id", "string", "is_speech"]
@@ -76,6 +101,11 @@ for file in os.listdir(xml_path):
 
 # Concat list of file matches to dataframe
 dataset = pd.concat(df_list, ignore_index=True)
+
+# Add noise if noise == True
+if noise:
+    dataset["string"] = dataset["string"].apply(lambda x: add_noise(x, noise_level=0.1))
+
 dataset_list = dataset.drop(['protocol_id', 'nr', "id"], axis=1).values.tolist()
 
 # Save

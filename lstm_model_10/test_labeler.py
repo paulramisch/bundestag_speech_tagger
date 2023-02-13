@@ -13,7 +13,7 @@ classifier: SpeechLabeler = torch.load(model_path)
 print(classifier)
 
 # Open annotated data
-with open(Path("../data/comparison_data.pkl"), 'rb') as pickle_file:
+with open(Path("../data/comparison_data_noise.pkl"), 'rb') as pickle_file:
     annotated_data = pickle.load(pickle_file)
 
 # Classify training data
