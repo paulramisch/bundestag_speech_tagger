@@ -9,13 +9,13 @@ The code to train the models is in the corresponding folders `lstm_model`, `lstm
 # 1. Introduction
 The project [Open Discourse](https://opendiscourse.de/) (OP) offers a database of all speeches held in the German parliament, the Bundestag.[^1] To achieve this, the research team used OCR- and/or PDF-extracted texts of the transcripts and cut them into individual speeches using Regex-based heuristics. These complex heuristics cover the majority of cases, but about 3 % of the original speeches are missing. Furthermore, there are speeches in the Open Discourse corpora that are not actually speeches.[^2]
 
-The heuristics are based on a short introduction preceding the speech with the speaker's name, party and function, for which three complex Regular Expression (RegEx) patterns were written.[[3]](#ref_3) Although the RegEx patterns are public, there is no documentation of their development. The approach of using RegEx to structure unstructured (plenary) documents is very common, and was also used for the similar GermaParl corpus.[[4]](#ref_4)
+The heuristics are based on a short introduction preceding the speech with the speaker's name, party and function, for which three complex Regular Expression (RegEx) patterns were written.[^3] Although the RegEx patterns are public, there is no documentation of their development. The approach of using RegEx to structure unstructured (plenary) documents is very common, and was also used for the similar GermaParl corpus.[^4]
 
-When this introduction is found, the system sees it as the beginning of a new speech, and cuts of the preceding speech. So an error here always affects the previous speech as well, as it means the previous speech contains now the content of the missed speech. In the recent preprint paper for the corpus, the team identifies two known problems for election terms 1, 2, 19 and 20.[[5]](#ref_5) Unfortunately, the problems are more widespread, covering all election terms in the OP corpus.[[6]](#ref_6)
+When this introduction is found, the system sees it as the beginning of a new speech, and cuts of the preceding speech. So an error here always affects the previous speech as well, as it means the previous speech contains now the content of the missed speech. In the recent preprint paper for the corpus, the team identifies two known problems for election terms 1, 2, 19 and 20.[^5] Unfortunately, the problems are more widespread, covering all election terms in the OP corpus.[^6]
 
-It is important to note that this task is very complex, as the structure of these lines and the information they contain has changed a lot over the 70 years that the corpus reflects. There are also typing and OCR errors, towards which RegEx patterns are very sensitive as they only match the exact pattern.[[7]](#ref_7)
+It is important to note that this task is very complex, as the structure of these lines and the information they contain has changed a lot over the 70 years that the corpus reflects. There are also typing and OCR errors, towards which RegEx patterns are very sensitive as they only match the exact pattern.[^7]
 
-This work tries to find out if it is possible to get better results than a heuristic by using natural language processing techniques to classify possible speech beginnings. Many machine learning tasks have been developed precisely for this purpose, and the use of ML models to structure XML files isn't an uncommon research trope.[[8]](#ref_8) This work is unique in that it is not intended for general use, but to achieve near-perfect results on a specific dataset, outperforming heuristic approaches that have been developed with great care. Both to reduce the effort needed for this task and to increase the quality of the classifications.
+This work tries to find out if it is possible to get better results than a heuristic by using natural language processing techniques to classify possible speech beginnings. Many machine learning tasks have been developed precisely for this purpose, and the use of ML models to structure XML files isn't an uncommon research trope.[^8] This work is unique in that it is not intended for general use, but to achieve near-perfect results on a specific dataset, outperforming heuristic approaches that have been developed with great care. Both to reduce the effort needed for this task and to increase the quality of the classifications.
 
 <a name="chapter_2"></a>
 # 2. Approach & Preparation
@@ -23,11 +23,11 @@ The approach for contains two steps: A very basic RegEx heuristic that identifie
 
 In this approach we only classificate short strings, a possible alternative would be, to use the whole text body and train it to insert tags where a new speech starts. While this is a viable approach, the classification of single lines is a lot less ressource intensive for the training as the content is prefiltered and concentrated to less than 5 % of the original character count. 
 
-More importantly the LSTM architecture would need a sentence level encoding, instead of word or character level encoding. First tests showed, that files of up to 1 or 2 mb and hundreds of thousands tokens interfere with the architectures capabilities. LSTMs can keep track of over 1.000 token, most BERT models can take up to 512 tokens as an input.[[9]](#ref_9) While BERT doesn't work at all with sentence level encoding, for LSTMs first tests showed, that through the sentence level abstraction too much information about certain characters such as commas, dots and colons is lost and it performs very poorly.
+More importantly the LSTM architecture would need a sentence level encoding, instead of word or character level encoding. First tests showed, that files of up to 1 or 2 mb and hundreds of thousands tokens interfere with the architectures capabilities. LSTMs can keep track of over 1.000 token, most BERT models can take up to 512 tokens as an input.[^9] While BERT doesn't work at all with sentence level encoding, for LSTMs first tests showed, that through the sentence level abstraction too much information about certain characters such as commas, dots and colons is lost and it performs very poorly.
 
 <a name="chapter_2-1"></a>
 ## 2.1 Plenary Minutes & Open Discourse
-The proceedings of the German Bundestag take place in public; only with a two-thirds majority can the public be excluded.[[10]](#ref_10) Plenary minutes are taken for each session.[[11]](#ref_11) For this purpose, minutes are prepared by the in-house stenographic service of the German Bundestag. The basic structure of plenary minutes has not changed since 1949 and is in a direct tradition of the minutes of the Weimar Republic:
+The proceedings of the German Bundestag take place in public; only with a two-thirds majority can the public be excluded.[^10] Plenary minutes are taken for each session.[^11] For this purpose, minutes are prepared by the in-house stenographic service of the German Bundestag. The basic structure of plenary minutes has not changed since 1949 and is in a direct tradition of the minutes of the Weimar Republic:
 
 - Table of contents: List of items on the agenda
 - Main body
@@ -35,11 +35,11 @@ The proceedings of the German Bundestag take place in public; only with a two-th
 
 On its [Open Data portal](https://www.bundestag.de/services/opendata), the Bundestag makes all the minutes since 1949 available in PDF and XML format, however these are completely unstructured until 2017 and contain only some meta-information. This completely unstructured text does not include any delimitation of the various components such as the table of contents, the main part, or the individual agenda items and the speeches. Until 1997, the documents are also based on scans that have been OCRed; after that, they are based on born-digital PDF documents.
 
-Open Discourse is a research project of the Berlin-based data science company Limebit GmbH, and aims to eliminate the greatest limitation of the existing Bundestag debates: The inability to filter speeches by politician, faction or position. The dataset, published in December 2020, appears to be a very valuable resource for historical, political and linguistic research on the Federal Republic of Germany. The code was released under MIT licence for free reuse, and the data was released under CC0 1.0, meaning without any restrictions.[[12]](#ref_12)
+Open Discourse is a research project of the Berlin-based data science company Limebit GmbH, and aims to eliminate the greatest limitation of the existing Bundestag debates: The inability to filter speeches by politician, faction or position. The dataset, published in December 2020, appears to be a very valuable resource for historical, political and linguistic research on the Federal Republic of Germany. The code was released under MIT licence for free reuse, and the data was released under CC0 1.0, meaning without any restrictions.[^12]
 
 The process of creating the database is complex and requires a large number of steps, for example to structure the transcripts into the table of contents, main part and conclusion, to break down the main part into individual speeches and to allocate the speeches to the politician:in. In between, various cleaning steps are necessary, for example to filter layout artefacts. Most of the errors occur in the step of splitting the main part into the different speeches.
 
-This step is mainly based on three RegEx patterns:[[13]](#ref_13)
+This step is mainly based on three RegEx patterns:[^13]
 ```python
 president_pattern_str = r"(?P<position_raw>Präsident(?:in)?|Vizepräsident(?:in)?|Alterspräsident(?:in)?|Bundespräsident(?:in)?|Bundeskanzler(?:in)?)\s+(?P<name_raw>[A-ZÄÖÜß](?:[^:([}{\]\)\s]+\s?){1,5})\s?:\s?"
 
@@ -48,11 +48,11 @@ faction_speaker_pattern_str = r"{3}(?P<name_raw>[A-ZÄÖÜß][^:([{{}}\]\)\n]+?)
 minister_pattern_str = r"{0}(?P<name_raw>[A-ZÄÖÜß](?:[^:([{{}}\]\)\s]+\s?){{1,5}}?),\s?(?P<position_raw>(?P<short_position>Bundesminister(?:in)?|Staatsminister(?:in)?|(?:Parl\s?\.\s)?Staatssekretär(?:in)?|Präsident(?:in)?|Bundeskanzler(?:in)?|Schriftführer(?:in)?|Senator(?:in)?\s?(?:{1}(?P<constituency>[^:([{{}}\]\)\s]+){2})?|Berichterstatter(?:in)?)\s?([^:([\]{{}}\)\n]{{0,76}}?\n?){{1,2}})\s?:\s?"
 ```
 
-In a sample of 36 of the approximately 5,000 transcripts, 233 of the 7542 transcripts were not recognised and 48 speeches were recognised that were not speeches due to these patterns not catching every case. As the data has been structured since 2017 and the OP corpus has not been based on RegEx patterns since then, this study focuses on the transcripts from 1949-2017.[[14]](#ref_14)
+In a sample of 36 of the approximately 5,000 transcripts, 233 of the 7542 transcripts were not recognised and 48 speeches were recognised that were not speeches due to these patterns not catching every case. As the data has been structured since 2017 and the OP corpus has not been based on RegEx patterns since then, this study focuses on the transcripts from 1949-2017.[^14]
 
 <a name="chapter_2-2"></a>
 ## 2.2 Training data preparation
-The first step is the data preparation: In order to train the model there is training data needed. For this 36 out of the approximately 5000 protocols were annotated, containing over 7000 speeches, for all the examined periods 1-18 two each. Departing from the modeling approach in the modern XML files that are published by the German parliamentary since 2017, every time a new person speaks, it is annoated as a new speech, this mirrors the modelling of the OP data. In the Bundestag XML files, the speeches of the speaker are modelled as of the speech of the politicans. The data was worked through twice and automaticly checked for plausibility.[[15]](#ref_15)
+The first step is the data preparation: In order to train the model there is training data needed. For this 36 out of the approximately 5000 protocols were annotated, containing over 7000 speeches, for all the examined periods 1-18 two each. Departing from the modeling approach in the modern XML files that are published by the German parliamentary since 2017, every time a new person speaks, it is annoated as a new speech, this mirrors the modelling of the OP data. In the Bundestag XML files, the speeches of the speaker are modelled as of the speech of the politicans. The data was worked through twice and automaticly checked for plausibility.[^15]
 
 The training data is created by extracting all strings of up 150 characters (all possible characters, including whitespace, line breaks and numbers) that with a colon with this RegEx pattern: `^.{5,150}?:`. If such a string is directly following the annotated speech tag, it is considered a positive, that is a speech beginning, if not it is tagged as negative, which means not a speech start but just speech content. Example look like this:
 
@@ -93,9 +93,9 @@ The very good results of this process showed the need for a better measure of pe
 accuracy = true_predictions / (true_predictions + false_predictions)
 ```
 
-The other reason is that the accuracy gives little weight to false_negatives (i.e. instances of speeches that were not identified by the model). The issue lies with unbalanced data, where one kind of outcome is more common than the other, in the data we have 7000 strings that are the beginning pf speeches but over 14.000 that are not. A common example to illustrate this, is a hypothetical cancer test, were 300 people get tested, 270 do not have cancer and get the right negative (true negative) result - "no cancer", but 30 people with cancer the wrong negative result (false negative). However this not working test, that always predicts "no cancer", has an accuracy of 90 %.[[16](#ref_16)]
+The other reason is that the accuracy gives little weight to false_negatives (i.e. instances of speeches that were not identified by the model). The issue lies with unbalanced data, where one kind of outcome is more common than the other, in the data we have 7000 strings that are the beginning pf speeches but over 14.000 that are not. A common example to illustrate this, is a hypothetical cancer test, were 300 people get tested, 270 do not have cancer and get the right negative (true negative) result - "no cancer", but 30 people with cancer the wrong negative result (false negative). However this not working test, that always predicts "no cancer", has an accuracy of 90 %.[^16]
 
-The F1-Score is a better metric here, as it takes into account both precision and recall. Precision is the proportion of true positive predictions (i.e. correctly identifying a speech string) out of all positive predictions made by the model. Recall is the proportion of true positive predictions out of all actual instances.[[17](#ref_17)]
+The F1-Score is a better metric here, as it takes into account both precision and recall. Precision is the proportion of true positive predictions (i.e. correctly identifying a speech string) out of all positive predictions made by the model. Recall is the proportion of true positive predictions out of all actual instances.[^17]
 
 Implemented these look therefore like this:
 ```python
@@ -127,9 +127,9 @@ The evolutionary step between LSTM and BERT are LSTM models with the Attention m
 
 <a name="chapter_3-1"></a>
 ## 3.1 LSTM
-LSTM (Long Short-Term Memory) is a type of Recurrent Neural Network (RNN) architecture was is specifically developed to overcome the vanishing gradient problem in traditional RNNs by allowing the network to selectively retain information from previous time steps. In the context of NLP, the vanishing gradient problem can pose a significant challenge for traditional Recurrent Neural Networks (RNNs) in processing long sequences of text data.[[18]](#ref_18) As the gradients become very small during the error backpropagation process, it becomes difficult for the network to effectively learn from the long-term dependencies in the text data. LSTMs are comprised of memory cells, gates, and activation functions that help regulate the flow of information into and out of the cells.[[19]](#ref_19)
+LSTM (Long Short-Term Memory) is a type of Recurrent Neural Network (RNN) architecture was is specifically developed to overcome the vanishing gradient problem in traditional RNNs by allowing the network to selectively retain information from previous time steps. In the context of NLP, the vanishing gradient problem can pose a significant challenge for traditional Recurrent Neural Networks (RNNs) in processing long sequences of text data.[^18] As the gradients become very small during the error backpropagation process, it becomes difficult for the network to effectively learn from the long-term dependencies in the text data. LSTMs are comprised of memory cells, gates, and activation functions that help regulate the flow of information into and out of the cells.[^19]
 
-Here a special variation of an LSTM is used: A BiLSTM (Bidirectional Long Short-Term Memory networks), a variation of LSTMs that are bidirectional, meaning they process the input sequence in both forward and backward directions, allowing them to capture both past and future context in the hidden state representation.[[20]](#ref_20)
+Here a special variation of an LSTM is used: A BiLSTM (Bidirectional Long Short-Term Memory networks), a variation of LSTMs that are bidirectional, meaning they process the input sequence in both forward and backward directions, allowing them to capture both past and future context in the hidden state representation.[^20]
 
 The input strings from the speeches go through an embedding layer that is used to convert the input text data into word representations in the form of vector embeddings, but it is not pre-trained on external data. Instead, the embeddings are learned from scratch during training, using the input text data to update the model parameters.
 
@@ -141,7 +141,7 @@ Another major shift was from token/word level to character level. The results of
 
 To further facilitate this, a random masking of characters was added: The masked characters are exchanged against an `<mask>`-Token. The best result was yieled by masking 30 % of the characters. 
 
-A dropout was added in the 24th model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[[21]](#ref_21)
+A dropout was added in the 24th model: Dropout refers to a regularization technique used to prevent overfitting. It works by randomly "dropping out" or ignoring a certain percentage of neurons during each iteration of training, meaning their activations and gradients will not be updated. This helps to prevent complex co-adaptations on training data, leading to a more general model that can perform well on unseen data.[^21]
 
 Up until the 24th model the LSTM was single layered, then a second layer was added, that is feed with learned representations from the first layer. 
 
@@ -150,9 +150,9 @@ The combination of a dropout of 20% and the second LSTM layer led to the best re
 <a name="chapter_3-2"></a>
 
 ## 3.2 LSTM & Fasttext
-The next architecture is the same, however the Embeddings layer is different, instead of the limited representations learned from the input data it uses a pretrained Embedding layer, with Facebooks FastText.[[22]](#ref_22) While FastText is often used for the embedding through a bag of words approach, here just the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
+The next architecture is the same, however the Embeddings layer is different, instead of the limited representations learned from the input data it uses a pretrained Embedding layer, with Facebooks FastText.[^22] While FastText is often used for the embedding through a bag of words approach, here just the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
 
-There are other pretrained embeddings, e.g. based on Googles Word2Vec algorithm. However the Fasttext model is trained on a broader dataset than the most common German Word2Vec set.[[23]](#ref_23)
+There are other pretrained embeddings, e.g. based on Googles Word2Vec algorithm. However the Fasttext model is trained on a broader dataset than the most common German Word2Vec set.[^23]
 
 However as shown in the after iterating over the parameters for [four models and seven training iterations](#appendix_2) the results are objectivly very good, with F1 scores of up to 0.9974 on the validation data but still not as good as the LSTM performance.
 
@@ -163,9 +163,9 @@ Thus the character level LSTM does not only peform better, but although is much 
 <a name="chapter_3-3"></a>
 
 ## 3.3 BERT
-Transformers are a type of neural network architecture originally introduced in the 2017 paper "Attention is All You Need".[[24]](#ref_24) Transformers are called so because they use self-attention mechanisms, to transform and consider the relationships between all input elements at once. This is in contrast to recurrent neural networks like LSTM, which process sequences one element at a time. Transformers are highly parallelizable and can be trained on large amounts of data, making them well suited for NLP tasks that require understanding of long-range dependencies in language. BERT (Bidirectional Encoder Representations from Transformers), in particular, is a pre-trained transformer-based language model that has been trained on a massive corpus of text data, allowing it to be fine-tuned for specific NLP tasks with relatively small amounts of task-specific training data.[[25]](#ref_25)
+Transformers are a type of neural network architecture originally introduced in the 2017 paper "Attention is All You Need".[^24] Transformers are called so because they use self-attention mechanisms, to transform and consider the relationships between all input elements at once. This is in contrast to recurrent neural networks like LSTM, which process sequences one element at a time. Transformers are highly parallelizable and can be trained on large amounts of data, making them well suited for NLP tasks that require understanding of long-range dependencies in language. BERT (Bidirectional Encoder Representations from Transformers), in particular, is a pre-trained transformer-based language model that has been trained on a massive corpus of text data, allowing it to be fine-tuned for specific NLP tasks with relatively small amounts of task-specific training data.[^25]
 
-The implementation that was used is from the python package [simple transformers](https://simpletransformers.ai/), it offers ready made transformer architectures for a variety of applications, here we use it for the binary classification.[[26]](#ref_26) The development of this model was by far the easiest as simple transformers does all heavy code lifting. There are pretrained [BERT models for German](https://huggingface.co/bert-base-german-cased), however at the time of testing the model was not compatible with the Mac M1 processor that was intially used for development. The first iteration used the [BERT model from the paper](https://huggingface.co/bert-base-cased) that was trained on english data, the iteration two and three used a german model trained on german data.[[27]](#ref_27).
+The implementation that was used is from the python package [simple transformers](https://simpletransformers.ai/), it offers ready made transformer architectures for a variety of applications, here we use it for the binary classification.[^26] The development of this model was by far the easiest as simple transformers does all heavy code lifting. There are pretrained [BERT models for German](https://huggingface.co/bert-base-german-cased), however at the time of testing the model was not compatible with the Mac M1 processor that was intially used for development. The first iteration used the [BERT model from the paper](https://huggingface.co/bert-base-cased) that was trained on english data, the iteration two and three used a german model trained on german data.[^27].
 
 As for the two LSTM architectures, in the training 80 % of the data was shown, however there was no test after each epoch; for the first iteration the validation split took 10 %; 10 % of the data therefore remained unused. For the iteration two and three the remaining 20 % became the test data.
 
@@ -208,11 +208,11 @@ However if we use a the noisy dataset, where 10 % of the a-Z characters of each 
 | fast_2.4        | 0.9955      | 951            | 0.9331         | Word level FastText embeddings                    |
 | bert_2_e5       | 1.0         | 837            | 0.9413         | English pre-trained model bert-base-cased         |
 | bert_3_e5       | 1.0         | 69             | 0.9954         | German pre-trained model bert-base-german-cased   |
-| open_discourse* | -           | 4733           | 0.5460         | Approximation[[28]](#ref_21)                      |
+| open_discourse* | -           | 4733           | 0.5460         | Approximation[^28]                      |
 
-Table 2: Different models performance on the noisy full dataset with 10 % of a-Z characters in each string being randomly exchanged. The Open Discourse data is an approximation.[[28]](#ref_28)
+Table 2: Different models performance on the noisy full dataset with 10 % of a-Z characters in each string being randomly exchanged. The Open Discourse data is an approximation.[^28]
 
-The model lstm_10.2 performs very badly with a F1 score of 0.7939, it has its vocabulary on word level from the data, and furthermore overfitted by learning names and titles from the data, with these being noisy it has a big impact on the performance. Similarily the noisy data has a big impact und the pretrained FastText embeddings. Unfortunealty bert_2_e5, that is based on pretrained english BERT model, seems to have similar issues to a smaller extend. The approximation[[28]](#ref_28) of the Open Discourse performance on the noisy data shows the sensibility of Regex based heuristics for slight mistakes in words, for instance due to bad OCR or typing errors. 
+The model lstm_10.2 performs very badly with a F1 score of 0.7939, it has its vocabulary on word level from the data, and furthermore overfitted by learning names and titles from the data, with these being noisy it has a big impact on the performance. Similarily the noisy data has a big impact und the pretrained FastText embeddings. Unfortunealty bert_2_e5, that is based on pretrained english BERT model, seems to have similar issues to a smaller extend. The approximation[^28] of the Open Discourse performance on the noisy data shows the sensibility of Regex based heuristics for slight mistakes in words, for instance due to bad OCR or typing errors. 
 
 The best results come from the model bert_3_e5 with 69 mistakes and 0.9954, the model lstm_24.1 doesn't perform too bad with 113 mistakes and a F1 score of 0.9925. It is not too suprising that lstm_24.1 performs quite well here, as during training 30 % of the strings were randomly masked, it is likely, that the BERT models could further improve their performance on noisy data by incooperating noise during the training. 
 
@@ -349,75 +349,70 @@ Major Changes:
 
 
 # References
-<a name="ref_1"></a>[1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
+[^1]: Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
 
-<a name="ref_2"></a>[2] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
+[^2]: Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
 
-<a name="ref_3"></a>[3] 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
+[^3]: 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
 
-<a name="ref_4"></a>[4] Andreas Blätte, Julia Rakers, Christoph Leonhardt, How GermaParl Evolves: Improving Data Quality by Reproducible, in: Corpus Preparation and User Involvement In Proceedings of the Workshop ParlaCLARIN III within the 13th Language Resources and Evaluation Conference 2022, https://aclanthology.org/2022.parlaclarin-1.2.pdf (checked: 02.02.2023), p. 11.
+[^4]: Andreas Blätte, Julia Rakers, Christoph Leonhardt, How GermaParl Evolves: Improving Data Quality by Reproducible, in: Corpus Preparation and User Involvement In Proceedings of the Workshop ParlaCLARIN III within the 13th Language Resources and Evaluation Conference 2022, https://aclanthology.org/2022.parlaclarin-1.2.pdf (checked: 02.02.2023), p. 11.
 
-<a name="ref_5"></a>[5] Florian Richter, et al., Open Discourse: Towards the First Fully Comprehensive and Annotated Corpus of the Parliamentary Protocols of the German Bundestag, SocArXiv Preprint 2023, DOI: https://doi.org/10.31235/osf.io/dx87u (checked 02.02.23), p. 10.
+[^5]: Florian Richter, et al., Open Discourse: Towards the First Fully Comprehensive and Annotated Corpus of the Parliamentary Protocols of the German Bundestag, SocArXiv Preprint 2023, DOI: https://doi.org/10.31235/osf.io/dx87u (checked 02.02.23), p. 10.
 
-<a name="ref_6"></a>[6] Ramisch, Open Discourse.
+[^6]: Ramisch, Open Discourse.
 
-<a name="ref_7"></a>[7] Richter, Open Discourse, p. 10.
+[^7]: Richter, Open Discourse, p. 10.
 
-<a name="ref_8"></a>[8] Todo: ML Machine Learning for XML structuring reference
+[^8]: Todo: ML Machine Learning for XML structuring reference
 
-<a name="ref_9"></a>[9] Ralf C. Staudemeyer, Eric Rothstein Morris, Understanding LSTM - a tutorial into Long Short-Term Memory Recurrent Neural Networks, in CoRR 2019, https://arxiv.org/abs/1909.09586 (checked: 07.02.23), p. 2.
+[^9]: Ralf C. Staudemeyer, Eric Rothstein Morris, Understanding LSTM - a tutorial into Long Short-Term Memory Recurrent Neural Networks, in CoRR 2019, https://arxiv.org/abs/1909.09586 (checked: 07.02.23), p. 2.
 
 Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, CoRR 2018, https://arxiv.org/abs/1810.04805 (checked: 07.02.23), p. 13-14.
 
-<a name="ref_10"></a>[10] Grundgesetz für die Bundesrepublik Deutschland, Artikel 42 Abs. 1.
+[^10]: Grundgesetz für die Bundesrepublik Deutschland, Artikel 42 Abs. 1.
 
-<a name="ref_11"></a>[11] Geschäftsordnung des Deutschen Bundestages § 116 Abs. 1, Deutscher Bundestag, https://www.bundestag.de/parlament/aufgaben/rechtsgrundlagen/go_btg/go11-245172 (checked: 14.02.23).
+[^11]: Geschäftsordnung des Deutschen Bundestages § 116 Abs. 1, Deutscher Bundestag, https://www.bundestag.de/parlament/aufgaben/rechtsgrundlagen/go_btg/go11-245172 (checked: 14.02.23).
 
-<a name="ref_12"></a>[12] Open Discourse, Harvard Dataverse, https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FIKIBO (checked 08.07.22).
+[^12]: Open Discourse, Harvard Dataverse, https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FIKIBO (checked 08.07.22).
 
-<a name="ref_13"></a>[13] 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
+[^13]: 01_extract_speeches.py, Github, https://github.com/open-discourse/open-discourse/blob/03225c25c451b8331a3dcd25937accc70c44d9ad/python/src/od_lib/04_speech_content/01_extract_speeches.py#L16 (abgerufen: 02.02.23), Zeile 16-20.
 
-<a name="ref_14"></a>[14] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
+[^14]: Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
 
-<a name="ref_15"></a>[15] The whole process is fully documented in my digital source critique of Open Discourse:
+[^15]: The whole process is fully documented in my digital source critique of Open Discourse:
 Ramisch, Open Discourse, chapter 4.2 Tagging der Redebeiträge, https://paulramisch.de/opendiscourse/4_vergleichskorpus.html.
 
-<a name="ref_16"></a>[16] Aakash Bindal, Measuring just Accuracy is not enough in machine learning, A better technique is required.., Techspace 2019, 
+[^16]: Aakash Bindal, Measuring just Accuracy is not enough in machine learning, A better technique is required.., Techspace 2019, 
 https://medium.com/techspace-usict/measuring-just-accuracy-is-not-enough-in-machine-learning-a-better-technique-is-required-e7199ac36856 (checked: 05.12.2022).
 
-<a name="ref_17"></a>[17] Sensitivity and specificity, Wikipedia, https://en.wikipedia.org/wiki/Sensitivity_and_specificity (checked: 05.12.2022).
+[^17]: Sensitivity and specificity, Wikipedia, https://en.wikipedia.org/wiki/Sensitivity_and_specificity (checked: 05.12.2022).
 
-<a name="ref_18"></a>[18] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 2. 
+[^18]: Staudemeyer, Rothstein Morris, Understanding LSTM, p. 2. 
 
-<a name="ref_19"></a>[19] Staudemeyer, Rothstein Morris, Understanding LSTM, p. 19-20. 
+[^19]: Staudemeyer, Rothstein Morris, Understanding LSTM, p. 19-20. 
 
-<a name="ref_20"></a>[20]  Staudemeyer, Rothstein Morris, Understanding LSTM, p. 29. 
+[^20]:  Staudemeyer, Rothstein Morris, Understanding LSTM, p. 29. 
 
-<a name="ref_21"></a>[21] Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
+[^21]: Geoffrey E. Hinton, et al., Improving neural networks by preventing co-adaptation of feature detectors, in: CoRR 2012, https://arxiv.org/abs/1207.0580 (checked: 07.02.23), p. 1.
 
-<a name="ref_22"></a>[22] Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
+[^22]: Armand Joulin, et al., Bag of Tricks for Efficient Text Classification, in: CoRR 2016, https://arxiv.org/abs/1607.01759 (checked: 07.02.23), p. 1-2.
 
-<a name="ref_23"></a>[23] Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
+[^23]: Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl-vectors.html (checked: 07.02.23).
 
 Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/GermanWordEmbeddings (checked: 07.02.23).
 
-<a name="ref_24"></a>[24] Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
+[^24]: Ashish Vaswani, et. al., Attention Is All You Need, CoRR 2017, https://arxiv.org/abs/1706.03762 (checked: 07.02.23).
 
-<a name="ref_25"></a>[25] Jacob Devlin, BERT, p. 1-2. 
+[^25]: Jacob Devlin, BERT, p. 1-2. 
 
-<a name="ref_26"></a>[26] Classification Models, Simple Transformers 2020, https://simpletransformers.ai/docs/classification-models/ (checked: 07.02.23).
+[^26]: Classification Models, Simple Transformers 2020, https://simpletransformers.ai/docs/classification-models/ (checked: 07.02.23).
 
-<a name="ref_27"></a>[27] Jacob Devlin, bert-base-cased, Hugging Face 2018, https://huggingface.co/bert-base-cased (checked: 08.02.23).
+[^27]: Jacob Devlin, bert-base-cased, Hugging Face 2018, https://huggingface.co/bert-base-cased (checked: 08.02.23).
 
 Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggingface.co/bert-base-german-cased (checked: 08.02.23).
 
-<a name="ref_28"></a>[28] The test of the Open Discourse Heuristic labeler in the file `open_discourse\test_labeler.py`, yields slightly better results with the dataset that was created in **2.1 Training data preparation** than on the XML files because the simple prefilter heurstic already filters out certain false matches and due because not all preprocessing step is implementet there. Therefore it gets an F1 score of 0.9818 on the dataset, while in reality the performance was only 0.9811. Therefore is likely that the model here performs slightly better on the noisy data than its real performance would look like.
+[^28]: The test of the Open Discourse Heuristic labeler in the file `open_discourse\test_labeler.py`, yields slightly better results with the dataset that was created in **2.1 Training data preparation** than on the XML files because the simple prefilter heurstic already filters out certain false matches and due because not all preprocessing step is implementet there. Therefore it gets an F1 score of 0.9818 on the dataset, while in reality the performance was only 0.9811. Therefore is likely that the model here performs slightly better on the noisy data than its real performance would look like.
 
 original performance: tp: 7309 tn: unknown fp: 48 fn: 233
 
 dataset performance: tp: 7332 tn: 13172 fp: 58 fn: 214
-
-
-[^1]: Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
-
-[^2]: Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
