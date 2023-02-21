@@ -14,7 +14,7 @@ The heuristics are based on a short introduction before the speech with the spea
 
 If this introduction is found, the system sees it as the beginning of a new speech and cuts the previous speech. So an error here always affects the previous speech too, because it means that the previous speech now contains the content of the missed speech. In the recent preprint paper for the corpus, the team identifies two known problems for election terms 1, 2, 19 and 20.[^5] Unfortunately, the problems are more widespread, affecting all election terms in the OP corpus.[^6]
 
-It is important to note that this task is very complex, as the structure of these lines and the information they contain has changed a lot over the 70 years that the corpus reflects. There are also typing and OCR errors, to which regex patterns are very sensitive as they only match the exact pattern.[^7]
+It is important to note that this task is very complex, as the structure of these lines and the information they contain has changed slightly over the 70 years that the corpus reflects. There are also typing and OCR errors, to which regex patterns are very sensitive as they only match the exact pattern.[^7]
 
 This work tries to find out if it is possible to get better results than a heuristic by using natural language processing techniques to structure plenary minutes by classifying possible speech beginnings. Many machine learning tasks have been developed for precisely this purpose, and the use of ML models to structure XML files is not an uncommon research trope.[^8] This work is unique in that it's not intended for general use, but to achieve near perfect results on a specific dataset, outperforming heuristic approaches that have been developed with great care. Both to reduce the effort required for this task and to increase the quality of the classifications.
 
@@ -31,12 +31,10 @@ More importantly, the LSTM architecture would require sentence-level encoding ra
 The proceedings of the German Bundestag are open to the public; only by a two-thirds majority can the public be excluded.[^10] Plenary minutes are taken for each session, and are prepared by the Bundestag's own stenographic service.[^11] The basic structure has not changed since 1949 and is in the direct tradition of the minutes of the Weimar Republic:
 
 - Table of contents: List of agenda items
-- main body
+- Main body
 - Annexes to the stenographic report: The first appendix is the attendance list or the list of excused delegates; other appendices are, for example, written replies to questions.
 
-On its [Open Data Portal](https://www.bundestag.de/services/opendata), the Bundestag makes all the minutes since 1949 available in PDF and XML format, however these are completely unstructured until 2017 and contain only some meta-information. This completely unstructured text does not include any delimitation of the various components such as the table of contents, the main part, or the individual agenda items and the speeches. Until 1997, the documents are also based on scans that have been OCRed; after that, they are based on born-digital PDF documents.
-
-On its [Open Data Portal] (https://www.bundestag.de/services/opendata), the German Bundestag makes available all the Minutes since 1949 in PDF and XML format, but the files until 2017 they are completely unstructured and contain only some meta information. This completely unstructured text does not contain any delimitation of the various components, such as the table of contents, the main body or the individual agenda items and speeches. Until 1997, the documents are also based on scans that have been OCR'ed, after which they are based on born-digital PDF documents.
+On its [Open Data Portal](https://www.bundestag.de/services/opendata), the German Bundestag makes available all the Minutes since 1949 in PDF and XML format, but the files until 2017 they are completely unstructured and contain only some meta information. This completely unstructured text does not contain any delimitation of the various components, such as the table of contents, the main body or the individual agenda items and speeches. Until 1997, the documents are also based on scans that have been OCR'ed, after which they are based on born-digital PDF documents.
 
 Open Discourse is a research project by Berlin-based data science company Limebit GmbH, and aims to remove the biggest limitation of existing Bundestag debates: The inability to filter speeches by politician, party or position. The dataset, which was released in December 2020, appears to be a highly valuable resource for historical, political and linguistic research on the Federal Republic of Germany. The code has been released under the MIT licence for free reuse, and the data has been released under CC0 1.0, i.e. without any restrictions.[^12]
 
@@ -55,7 +53,7 @@ In a sample of 36 out of approximately 5,000 transcripts, 233 of the 7542 transc
 
 ## 2.2 Preparing the training data
 
-The first step is data preparation: Training data are needed to train the model. For this purpose, 36 of the approximately 5000 transcripts were annotated with more than 7000 speeches, two for each of the time periods 1-18. Differing from the modelling approach in the modern XML files published by the Bundestag since 2017, every time a new person speaks, it is annotated as a new speech, reflecting the modelling of the OP data. In the Bundestag XML files, the speeches of the President of the Bundestag, who acts as speaker, are modelled as part of the politicians' speeches. The data was processed twice and automatically checked for plausibility.[^15]
+The first step is data preparation: Training data are needed to train the model. For this purpose, 36 of the approximately 5,000 transcripts were annotated, resulting in more than 7,000 annotated speeches, two for each of the Bundestag periods 1-18. Unlike the modelling approach in the modern XML files published by the Bundestag since 2017, every time a new person speaks, it is annotated as a new speech, reflecting the modelling of the OP data. In the Bundestag XML files, the speeches of the President of the Bundestag, who acts as speaker, are modelled as part of the politicians' speeches. The data was processed twice and automatically checked for plausibility.[^15]
 
 The training data is created by extracting all strings of up to 150 characters (all possible characters, including spaces, line breaks and numbers) that end with a colon with the following regex pattern: `^.{5,150}?:`. If such a string comes directly after the annotated speech tag, it will be considered positive, i.e. a beginning of an speech; if not, it will be considered negative, i.e. no beginning of an speech, just content of an speech. A few examples look like this:
 
@@ -81,7 +79,7 @@ Of course, the negatives are just speech content that includes a colon. This als
 
 > (Georg Pfannenstein [SPD]:
 
-The last two are examples of interjections in speeches, which look similar to speech, but use different brackets and have a round bracket at the beginning, although it may be on a different line.
+The last two are examples of interjections in speeches, which look similar to a speech, but use different brackets and have a round bracket at the beginning, although the bracket may be on a different line.
 
 During the iterative development process of the BiLSTM models, by manually checking the error list of the models, I realised that there were four missing speeches in the test data. These were annotated and became the basis for further training of LSTM models 16 to 26, all LSTM FastText and BERT models.
 
@@ -111,17 +109,15 @@ The F1 score for the Open Discourse Corpus is therefore 0.9811:
 
 ## 2.4 Comparison Methodology
 
-## 2.4 Comparison Methodology
-
-When training and comparing machine learning models, the data is usually split into either training and test data, or training, test and validation data. For LSTM it is the latter: 80% is used for training, 10% for testing - which of the epochs is the best model - and 10% for validation. So the accuracy or f1 score is tested on the validation data, 10% of the whole dataset of 20,775 entries. At the beginning of the training, the data is randomly mixed.
+When training and comparing machine learning models, the data is usually split into either training and test data, or training, test and validation data. For LSTM it is the latter: 80% is used for training, 10% for testing - which of the epochs is the best model - and 10% for validation. So the accuracy or F1 score is tested on the validation data, 10% of the whole dataset of 20,775 entries. At the beginning of the training, the data is randomly mixed.
 
 Normally this would be a good measure to compare different architectures, but here we need to anticipate some of the results from the later chapters: The models are too good and too close for these measures to give a clear result. 10% of the total dataset means 2078 data points, but the best models range from zero to three errors on the test data. With the random split, these results are therefore dependent on whether difficult cases become part of the training or test data.
 
-While this could be addressed by not having a random split, but by seeding the randomness and thus preventing this problem. However, while this makes them more comparable, it does manifest that particular split. Certain harder edge cases are just represented in that particular split.
+This could be addressed by not having a random split, but by seeding the randomness and thus avoiding this problem. However, while this makes them more comparable, it does manifest this particular split. However, the different models and architectures will have different edge case problems, and with such a small error rate it becomes a coin flip as to which model performs best, depending on whether their specific edge case is part of the training or validation data.
 
 The way this is dealt with is therefore a combination of comparing performance on the test data and on the whole dataset. This is normally not recommended as it biases the results towards models that remember the data. In this case, this problem is already present to some extent, as all the examples are taken from the same 36 documents. Often speakers have several short speeches, for example during a Q&A session, by which time the systems have already seen the data.
 
-The good quantitative results therefore lead to a careful balance between the results from the validation data and the results from the full dataset - data of which the models have seen 80% during training.
+The good quantitative results therefore lead to the need for careful consideration of the results from the validation data and the results from the full dataset - data of which the models have seen 80% during training. In addition, a comparison of performance on the noisy dataset will be part of this consideration.
 
 # 3. Machine Learning Architectures
 
@@ -154,7 +150,7 @@ The combination of a 20% dropout and the second LSTM layer produced the best res
 
 ## 3.2 BiLSTM & FastText
 
-The next architecture is the same, however the embedding layer is different, instead of the limited representations learned from the input data it uses a pre-trained embedding layer, using Facebook's FastText.[^22] While FastText is often used for embedding through a bag of words approach, here only the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network to overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
+The next architecture is the same, however the embedding layer is different, instead of the limited representations learned from the input data it uses a pre-trained embedding layer,  Facebook's FastText.[^22] While FastText is often used for embedding sentences through a bag of words approach, here only the word embeddings are used. These embeddings capture the semantic meaning of the words and are fed as input to the LSTM network. The use of pre-trained FastText embeddings helps the network to overcome the challenge of learning meaningful representations from scratch, especially when dealing with large amounts of text data. 
 
 There are other pre-trained embeddings, for example based on Google's Word2Vec algorithm. However, the Fasttext model is trained on a broader dataset than the most common German Word2Vec set.[^23]
 
@@ -171,8 +167,6 @@ The implementation used is from the Python package [simple transformers](https:/
 As for the two LSTM architectures, 80% of the data was shown in training, but there was no test after each epoch; for the first iteration the validation split was 10%, so 10% of the data remained unused.
 
 The results are impressive: The model from the first iteration, pre-trained on the English data, made only two mistakes on both the test and the whole dataset. The model pre-trained on the German dataset made no mistakes on the unseen 20% of the data and a single mistake on the whole dataset. The third iteration, although showing good results, does not reach the same level as the previous two iterations, while still having all the same parameters as the second, showing the non-determinism of the learning systems.
-
-The first model incorrectly did not label the string `Günther Friedrich Nolting (F.D.P.) (von Abgeordne- ten der F.D.P. mit Beifall begrüßt):`(protocoll 14-150) as a speech, and wrongly labeled the string `Häfele, zur Konzeption:` (protocoll 09-126) as a speech. The second german trained model incorrectly labeled `CDU/CSU:`() as a speech. The english trained model seems to have learned the different structure and interpunctation of real speech beginnings, which led to reject the Nolting speech, that has a very uncommon format, and to acceptance of the Häfele string, that looks a lot like the beginning of a speech if the vocabulary is unknown. The German model seems to work with the known token/words, as there no mistakes as in the first, however the the CDU/CSU string is a big indicator for the beginning of speech, but structure wise obviously not.
 
 The first model incorrectly labelled the string `Günther Friedrich Nolting (F.D.P.) (von Abgeordne- ten der F.D.P. mit Beifall begrüßt):`(protocoll 14-150) as a speech and incorrectly labelled the string `Häfele, zur Konzeption:`(protocoll 09-126) as a speech. The second German trained model incorrectly labelled the string `CDU/CSU:` as a speech. The English trained model seems to have learned the different structures and interpunctuation of real speech beginnings, which led it to reject the Nolting speech, which has a very unusual format, and to accept the Häfele string, which looks very much like the beginning of a speech when the vocabulary is unknown - as we will see in the next chapter, this is not untrue. The German model seems to work with the known tokens/words, as there are no mistakes like in the first one, but the CDU/CSU string is a big indicator for the beginning of a speech, but obviously not for the structure.
 
@@ -192,7 +186,7 @@ The first model incorrectly labelled the string `Günther Friedrich Nolting (F.D
 | bert_3_e5      | 0           | 1.0         | 1.0         | 1           | 0.9999      | 0.9999      |
 | open_discourse | -           | -           | -           | 281         | -           | 0.9811      |
 
-Table 1: Overview of best results for different ML architectures and Open Discourse; td is short for test_data, fd is short for full_data; * Tested but not trained on updated data
+Table 1: Overview of best results for different ML architectures and Open Discourse; td is short for test_data, fd is short for full_data; *Tested but not trained on updated data
 
 The table shows nine of the best performing models and three different architectures compared to the results of the Open Discourse Corpus Code. Every single model in this list outperforms the Open Discourse Heuristics.
 
@@ -216,17 +210,17 @@ Table 2: Performance of different models on the noisy full dataset, where 10% of
 
 The model lstm_10.2 performs very poorly with an F1 score of 0.7939, it has its vocabulary at word level from the data and in addition it has overfitted by learning names and titles from the data, as these are now noisy this has a big impact on performance. Similarly, the noisy data has a big impact on the pre-trained FastText embeddings. Unfortunately, bert_2_e5, which is based on a pre-trained English BERT model, seems to have similar problems to a lesser extent. The approximation[^28] of the Open Discourse performance on the noisy data shows the sensitivity of regex-based heuristics to small errors in words, for example due to poor OCR or typing errors.
 
-The best results come from the model bert_3_e5 with 69 errors and an F1 of 0.9954, the model lstm_24.1 doesn't perform too badly with 113 errors and an F1 of 0.9925. It is not too surprising that lstm_24.1 performs quite well here, as during training 30% of the strings were randomly masked, it is likely that the BERT models could further improve their performance on noisy data by eliminating noise during training. 
+The best results come from the model bert_3_e5 with 69 errors and an F1 of 0.9954, the model lstm_24.1 doesn't perform too badly with 113 errors and an F1 of 0.9925. It is not too surprising that lstm_24.1 performs quite well here, as during training 30% of the strings were randomly masked, it is likely that the BERT models could further improve their performance on noisy data by adding noise during training. 
 
 This also highlights a similarity between the lstm_24.1 model and the BERT architecture in general: They don't use whole-word embeddings, which don't work well on noisy data; this particular LSTM model works at the character level, the BERT architecture is based on flexible sub-word levels.
 
-In general, the OCR quality of the Bundestag Corpus XML files is very good and there are a very limited number of typing errors, so the results of this test should not be taken as an absolute measure. However, it does show three things: regex heuristics are not really suited to noisy data, a good LSTM architecture can perform very well without any prior training, and thirdly, although BERT can produce incredible results, it is still important to stress test the performance of the model with noisy data to find out its weaknesses.
+In general, the OCR quality of the Bundestag Corpus XML files is very good and there are a very limited number of typing errors, so the results of this test should not be taken as an absolute measure. However, it does show three things: regex heuristics are not really suited to noisy data, a good LSTM architecture can perform very well without any prior training, and thirdly, although BERT can produce incredible results, it is still important to stress test the performance of the model to find out about its weaknesses.
 
 # 4. Conclusion
 
 The models show that developing an ML model that outperforms complex heuristic approaches for classifying speeches from parliamentary transcripts is not only possible, but yields great results. An F1 score of 1.0 on the test data and 0.9999 on the whole dataset is far better than the Open Discourse F1 score of 0.9811.
 
-The development of regex heuristics for this application must include a large database of annotated examples to test their performance prior to their use in production. This work shows that such annotated examples are better used directly as training data for an ML model. Computationally, regex heuristics can be much more efficient, both because they don't need training and during execution time, and the LSTM models are more efficient than the BERT models and also show great performance. However, when it comes to effectiveness, the BERT model is convincing. In the use case as a one-off annotation tool for a large dataset, these efficiency considerations pale in comparison to the great results.
+The development of regex heuristics for this application must include a large database of annotated examples to test their performance prior to their use in production. This work shows that such annotated examples are better used directly as training data for an ML model. Computationally, regex heuristics can be much more efficient, both because they don't need training and during execution time, and the LSTM models are more efficient than the BERT models and also show great performance. However, when it comes to effectiveness, the BERT model is winnung. In the use case as a one-off annotation tool for a large dataset, these efficiency considerations pale in comparison to the great results.
 
 For further research and development, the training and test data should come from different files, ideally by annotating a different file for each period. Another less laborious way would be to randomly swap the names and parties in the training data with a database of surnames and random parties.
 
