@@ -412,7 +412,5 @@ Andreas Müller, GermanWordEmbeddings, GitHub 2022, https://github.com/devmount/
 Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggingface.co/bert-base-german-cased (checked: 08.02.23).
 
 [^28]: The test of the Open Discourse Heuristic labeler in the file `open_discourse\test_labeler.py`, yields slightly better results with the dataset that was created in **2.1 Training data preparation** than on the XML files because the simple prefilter heurstic already filters out certain false matches and due because not all preprocessing step is implementet there. Therefore it gets an F1 score of 0.9818 on the dataset, while in reality the performance was only 0.9811. Therefore is likely that the model here performs slightly better on the noisy data than its real performance would look like.
-
-original performance: tp: 7309 tn: unknown fp: 48 fn: 233
-
-dataset performance: tp: 7332 tn: 13172 fp: 58 fn: 214
+original performance: tp: 7309 tn: unknown fp: 48 fn: 233  
+dataset performance: tp: 7332 tn: 13172 fp: 58 fn: 214  
