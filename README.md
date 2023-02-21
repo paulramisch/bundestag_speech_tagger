@@ -5,24 +5,9 @@ The code to train the models is in the corresponding folders `lstm_model`, `lstm
 
 ---
 
-1. [Introduction](#chapter_1)
-2. [Approach & Preparation](#chapter_2)
-    1. [Plenary Minutes & Open Discourse](#chapter_2-1)
-    2. [Training data preparation](#chapter_2-2)
-    3. [Measure: Accuracy vs. F1-Score](#chapter_2-3)
-    4. [Comparison Methodology](#chapter_2-4)
-[3. Machine Learning Architectures](#chapter_3)
- [3.1 LSTM](#chapter_3-1)
- [3.2 LSTM & Fasttext](#chapter_3-2)
- [3.3 BERT](#chapter_3-3)
- [3.4 Model & Architecture Comparison](#chapter_3-4)
-[4. Conclusion](#chapter_4)
-[Appendix](#appendix_1)
-[References](#ref_1)
-
 <a name="chapter_1"></a>
 # 1. Introduction
-The project [Open Discourse](https://opendiscourse.de/) (OP) offers a database of all speeches held in the German parliament, the Bundestag.[[1]](#ref_1) To achieve this, the research team used OCR- and/or PDF-extracted texts of the transcripts and cut them into individual speeches using Regex-based heuristics. These complex heuristics cover the majority of cases, but about 3 % of the original speeches are missing. Furthermore, there are speeches in the Open Discourse corpora that are not actually speeches.[[2]](#ref_2)
+The project [Open Discourse](https://opendiscourse.de/) (OP) offers a database of all speeches held in the German parliament, the Bundestag.[^1] To achieve this, the research team used OCR- and/or PDF-extracted texts of the transcripts and cut them into individual speeches using Regex-based heuristics. These complex heuristics cover the majority of cases, but about 3 % of the original speeches are missing. Furthermore, there are speeches in the Open Discourse corpora that are not actually speeches.[^2]
 
 The heuristics are based on a short introduction preceding the speech with the speaker's name, party and function, for which three complex Regular Expression (RegEx) patterns were written.[[3]](#ref_3) Although the RegEx patterns are public, there is no documentation of their development. The approach of using RegEx to structure unstructured (plenary) documents is very common, and was also used for the similar GermaParl corpus.[[4]](#ref_4)
 
@@ -394,9 +379,6 @@ Jacob Devlin, et. al., BERT: Pre-training of Deep Bidirectional Transformers for
 
 <a name="ref_14"></a>[14] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
 
-___
-Needs Number updates:
-
 <a name="ref_15"></a>[15] The whole process is fully documented in my digital source critique of Open Discourse:
 Ramisch, Open Discourse, chapter 4.2 Tagging der Redebeiträge, https://paulramisch.de/opendiscourse/4_vergleichskorpus.html.
 
@@ -434,3 +416,8 @@ Branden Chan, et. al., bert-base-german-cased, Hugging Face 2019, https://huggin
 original performance: tp: 7309 tn: unknown fp: 48 fn: 233
 
 dataset performance: tp: 7332 tn: 13172 fp: 58 fn: 214
+
+
+[^1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
+
+[^2] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
