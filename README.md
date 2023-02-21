@@ -2,7 +2,7 @@
 
 This repository contains an evaluation of different machine learning (ML) architectures and models trained to find speeches in the unstructured plenary minutes files of the German Bundestag, and compares their performance with the regex based approach used for the [Open Discourse Corpus](https://opendiscourse.de/).
 
-The code for training the models can be found in the respective folders `lstm_model`, `lstm_model_10`, `lstm_model_fasttext`, `bert_model`, they each contain a trained, ready-to-use model, except for the BERT architecture due to the size limitations of the GitHub hosting. The `open_discourse` folder contains the Open Discourse regex heuristics adapted to work with the training data used for the ML training for comparison. The `data` folder contains the annotated transcripts in XML format, a script to generate training data, and the training data in CSV and Pickle.
+The code for training the models can be found in the respective folders `lstm_model`, `lstm_model_fasttext`, `bert_model`, they each contain a trained, ready-to-use model, except for the BERT architecture due to the size limitations of the GitHub hosting. The `open_discourse` folder contains the Open Discourse regex heuristics adapted to work with the training data used for the ML training for comparison. The `data` folder contains the annotated transcripts in XML format, a script to generate training data, and the training data in CSV and Pickle.
 
 ---
 
