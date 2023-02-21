@@ -145,3 +145,22 @@ class SpeechLabeler(torch.nn.Module):
             prediction = False if prediction_int == 0 else True
 
         return prediction, prediction_int
+
+
+    def classify_batch(self, data):
+        self.eval()
+        _, hidden = self.forward(data)
+        prediction = self.make_prediction(hidden)
+
+        predictions = []
+        predictions_torch = []
+
+        with torch.no_grad():
+            for classification in prediction:  # Batch
+                prediction_torch = torch.round(classification).item()
+                prediction = False if prediction_torch == 0 else True
+
+                predictions.append(prediction)
+                predictions_torch.append(torch.round(classification, decimals=4).item())
+
+        return predictions, predictions_torch

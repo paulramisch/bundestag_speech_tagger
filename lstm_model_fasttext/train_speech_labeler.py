@@ -21,7 +21,7 @@ model_save_name = "models/best-speech-tagger.pt"
 learning_rate = 0.25
 number_of_epochs = 5
 rnn_hidden_size = 100
-mini_batch_size = 1
+mini_batch_size = 10
 torch.manual_seed(1)
 
 if torch.cuda.is_available():
@@ -50,15 +50,11 @@ for observation in file:
 random.shuffle(training_data)
 
 # create training, testing and validation splits
+training_data_full = training_data
 corpus_size = len(training_data)
 validation_data = training_data[-round(corpus_size / 5):-round(corpus_size / 10)]
 test_data = training_data[-round(corpus_size / 10):]
 training_data = training_data[:-round(corpus_size / 5)]
-
-pd.DataFrame(training_data).to_csv("training_data.csv")
-pd.DataFrame(validation_data).to_csv("validation_data.csv")
-pd.DataFrame(test_data).to_csv("test_data.csv")
-
 
 # some helpful output
 print(f"\nTraining corpus has "
@@ -173,6 +169,19 @@ print(f" - using model from epoch {best_epoch} for final evaluation")
 print(f"accuracy: {test_accuracy}")
 print(f" - final score: {round(f1_score, 4)}"
       f"\n tp: {accuracy_data[0]} tn: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
+
+
+# load best model and do final test
+best_model = torch.load(model_save_name)
+test_accuracy, f1_score, accuracy_data, _, _ = best_model.evaluate(training_data_full)
+
+# print final score
+print("\n -- Training Done --")
+print(f" - using model from epoch {best_epoch} for final evaluation")
+print(f"accuracy: {test_accuracy}")
+print(f" - final score: {round(f1_score, 4)}"
+      f"\n tp: {accuracy_data[0]} tn: {accuracy_data[1]} fp: {accuracy_data[2]} fn: {accuracy_data[3]}")
+
 
 
 # make plots

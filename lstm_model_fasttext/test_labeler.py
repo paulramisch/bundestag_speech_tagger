@@ -20,19 +20,22 @@ for string in strings:
     print("---")
     print(string)
     print(classifier.classify(string))
+    print(classifier.classify_batch([string]))
 
 
 def run_test(df):
-    def run_loopy(df):
+    def run_loopy_list(df):
+        batches = [df[i:i + 20] for i in range(0, df.shape[0], 20)]
         Cs, Ds = [], []
-        for _, row in df.iterrows():
-            c, d, = classifier.classify(row["string"])
-            Cs.append(c)
-            Ds.append(d)
+        for batch in batches:
+            strings = batch["string"].tolist()
+            c_batch, d_batch = classifier.classify_batch(strings)
+            Cs.extend(c_batch)
+            Ds.extend(d_batch)
         return pd.Series({'classifier_output': Cs, 'int': Ds})
 
-    # Get Classification
-    df[['classifier_output', 'int']] = run_loopy(df)
+    # Get Classification batch (single classification don't work well due to padding issues)
+    df[['classifier_output', 'int']] = run_loopy_list(df)
 
     # Create dataframe of mistakes
     mistakes = df[df["classifier_output"] != df["is_speech"]]
@@ -53,18 +56,10 @@ def run_test(df):
 
 
 # Open annotated data
-with open(Path("../data/comparison_data.pkl"), 'rb') as pickle_file:
+with open(Path("../data/comparison_data_noise.pkl"), 'rb') as pickle_file:
     annotated_data = pickle.load(pickle_file)
 
-validation_data = pd.read_csv("validation_data.csv")
-run_test(validation_data)
+# Random shuffle the data
+annotated_data = annotated_data.sample(frac=1).reset_index(drop=True)
+
 run_test(annotated_data)
-
-training_data = pd.read_csv("training_data.csv")
-run_test(training_data)
-
-validation_data = pd.read_csv("validation_data.csv")
-run_test(validation_data)
-
-test_data = pd.read_csv("test_data.csv")
-run_test(test_data)
