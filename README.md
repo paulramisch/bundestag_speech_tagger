@@ -5,12 +5,12 @@ The code to train the models is in the corresponding folders `lstm_model`, `lstm
 
 ---
 
-[1. Introduction](#chapter_1)
-[2. Approach & Preparation](#chapter_2)
- [2.1 Plenary Minutes & Open Discourse](#chapter_2-1)
- [2.2 Training data preparation](#chapter_2-2)
- [2.3 Measure: Accuracy vs. F1-Score](#chapter_2-3)
- [2.4 Comparison Methodology](#chapter_2-4)
+1. [Introduction](#chapter_1)
+2. [Approach & Preparation](#chapter_2)
+    1. [Plenary Minutes & Open Discourse](#chapter_2-1)
+    2. [Training data preparation](#chapter_2-2)
+    3. [Measure: Accuracy vs. F1-Score](#chapter_2-3)
+    4. [Comparison Methodology](#chapter_2-4)
 [3. Machine Learning Architectures](#chapter_3)
  [3.1 LSTM](#chapter_3-1)
  [3.2 LSTM & Fasttext](#chapter_3-2)
@@ -70,31 +70,28 @@ In a sample of 36 of the approximately 5,000 transcripts, 233 of the 7542 transc
 The first step is the data preparation: In order to train the model there is training data needed. For this 36 out of the approximately 5000 protocols were annotated, containing over 7000 speeches, for all the examined periods 1-18 two each. Departing from the modeling approach in the modern XML files that are published by the German parliamentary since 2017, every time a new person speaks, it is annoated as a new speech, this mirrors the modelling of the OP data. In the Bundestag XML files, the speeches of the speaker are modelled as of the speech of the politicans. The data was worked through twice and automaticly checked for plausibility.[[15]](#ref_15)
 
 The training data is created by extracting all strings of up 150 characters (all possible characters, including whitespace, line breaks and numbers) that with a colon with this RegEx pattern: `^.{5,150}?:`. If such a string is directly following the annotated speech tag, it is considered a positive, that is a speech beginning, if not it is tagged as negative, which means not a speech start but just speech content. Example look like this:
-```XML
-Dr. Wilhelmi (CDU/CSU) :
 
-Präsident Dr. Norbert Lammert:
+> Dr. Wilhelmi (CDU/CSU) :
 
-Genscher, Bundesminister des Innern:
+> Präsident Dr. Norbert Lammert:
 
-Heide Simonis, Ministerpräsidentin (Schleswig-Hol-
-stein) (von der SPD mit Beifall begrüßt):
-```
+> Genscher, Bundesminister des Innern:
+
+> Heide Simonis, Ministerpräsidentin (Schleswig-Hol-
+> stein) (von der SPD mit Beifall begrüßt):
 
 Naturally the negatives are just speech content that include a colon. This also leads to a blind spot of this approach: If the colon is missing, either due to OCR erors or another mistake, the classification won't take place which would lead to a non-detected speech. However, during the annotation process, there was not a single case of this found. Here are a few of these non speech strings:
 
-```XML
-Unterhaltungsmaßnahmen. Dabei verkennen wir nicht
-die Zuständigkeiten der Länder für den Hochwasser-
-schutz. Ich sage aber auch:
+> Unterhaltungsmaßnahmen. Dabei verkennen wir nicht
+> die Zuständigkeiten der Länder für den Hochwasser-
+> schutz. Ich sage aber auch:
 
-18. April des letzten Jahres – das ist noch kein Jahr her –
-wird Herr Scharping mit folgender Aussage zitiert:
+> 18. April des letzten Jahres – das ist noch kein Jahr her –
+> wird Herr Scharping mit folgender Aussage zitiert:
 
-(Dr. Peter Ramsauer [CDU/CSU]:
+> (Dr. Peter Ramsauer [CDU/CSU]:
 
-(Georg Pfannenstein [SPD]:
-```
+> (Georg Pfannenstein [SPD]:
 
 The last two are examples for interjections in speeches, that look similar to speech, but use different brackets and have a round bracket in the beginning, though this might be in a different line.
 
