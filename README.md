@@ -418,6 +418,6 @@ original performance: tp: 7309 tn: unknown fp: 48 fn: 233
 dataset performance: tp: 7332 tn: 13172 fp: 58 fn: 214
 
 
-[^1] Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
+[^1]: Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
 
-[^2] Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
+[^2]: Paul Ramisch, Open Discourse - eine Quellenkritik, 2022, https://paulramisch.de/opendiscourse/6_analyse%2Bevaluation.html (checked: 02.02.2023).
