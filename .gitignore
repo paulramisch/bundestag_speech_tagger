@@ -6,3 +6,4 @@ lstm_model_fasttext/cc.de.300.bin
 lstm_model_fasttext/cc.de.300.bin.gz
 Illu/
 .idea/
+.DS_Store
