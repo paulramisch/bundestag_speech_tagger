@@ -281,7 +281,7 @@ Word vectors for 157 languages, Fasttext 2018, https://fasttext.cc/docs/en/crawl
 
 <a name="appendix_1"></a>
 
-## Appendix 1: LSTM Architecture
+## Appendix 1: BiLSTM Architecture
 Major Changes:
 * From model 12: Evaluation change from accuracy to F1 scores
 * From model 14: Change to character level (previously word level)
@@ -333,6 +333,8 @@ Major Changes:
 | 25   | ✅       | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          | -        | 0.9975   |
 | 26   | ✅       | 50     | 20        | 1   | 0.05 | 10    | 8          | 7          | -        | 0.9987   |
 
+Table 3: Overview of all trained BiLSTM models
+
 <a name="appendix_2"></a>
 
 ## Appendix 2: LSTM & FastText
@@ -347,6 +349,8 @@ Major Changes:
 | 4.1 | 70     | 0.05 | 10    | 5          | 2          | 0.9928   |
 | 4.2 | 70     | 0.05 | 10    | 5          | 3          | 0.994    |
 
+Table 4: Overview of all trained BiLSTM-FastText models
+
 <a name="appendix_3"></a>
 
 ## Appendix 3: BERT
@@ -359,9 +363,11 @@ Major Changes:
 | 3_e5   | bert-base-german-cased | 5          | 1.0       |
 | 4_e10  | bert-base-german-cased | 10         | 0.9998    |
 
+Table 5: Overview of all trained BERT models and selected epochs
+
 <a name="appendix_4"></a>
 
-## Appendix 4: Validation on Whole Dataset
+## Appendix 4: Validation on the Full Dataset
 | model      | mistakes | tp   | tn    | fp | fn   | accuracy | f1_score |
 |------------|----------|------|-------|----|------|----------|----------|
 | lstm_10.2  | 13       | 7537 | 13226 | 4  | 9    | 0.9994   | 0.9991   |
@@ -392,6 +398,7 @@ Major Changes:
 | bert_4_e5  | 12       | 7545 | 13219 | 11 | 1    | 0.9995   | 0.9992   |
 | bert_4_e10 | 3        | 7544 | 13229 | 1  | 2    | 0.9996   | 0.9998   |
 
+Table 6: Overview of the performance of selected models on the full dataset
 
 [^1]: Florian Richter, et al., Open Discourse, https://opendiscourse.de/ (checked: 27.12.2023).
 
