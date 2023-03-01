@@ -1,4 +1,4 @@
-# Bundestag Speech Tager: Comparison of Different Machine Learning Architectures to Structure Plenary Minutes
+# Bundestag Speech Tagger: Comparison of Different Machine Learning Architectures to Structure Plenary Minutes
 
 This repository contains an evaluation of different machine learning (ML) architectures and models trained to find speeches in the unstructured plenary minutes files of the German Bundestag, and compares their performance with the rule-based approach used for the [Open Discourse Corpus](https://opendiscourse.de/).
 
