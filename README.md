@@ -414,8 +414,7 @@ Table 6: Overview of the performance of selected models on the full dataset
 
 [^7]: Richter, Open Discourse, p. 10.
 
-[^8]: The automatic tagging of unstructured text data is part of research into information retrieval (IR) techniques, this twenty year old paper focuses specifically on the use of ML to structure unstructured text:
-
+[^8]: The automatic tagging of unstructured text data is part of research into information retrieval (IR) techniques, this twenty year old paper focuses specifically on the use of ML to structure unstructured text:  
 Shazia Akhtar, Ronan G. Reilly, John Dunnion, Auto-tagging of Text Documents into XML, in: Text, Speech and Dialogue, Lecture Notes in Computer Science (vol 2807), Springer 2003, DOI: https://doi.org/10.1007/978-3-540-39398-6_4 (checked: 02.02.2023).
 
 [^9]: Ralf C. Staudemeyer, Eric Rothstein Morris, Understanding LSTM - a tutorial into Long Short-Term Memory Recurrent Neural Networks, in CoRR 2019, https://arxiv.org/abs/1909.09586 (checked: 07.02.23), p. 2.  
